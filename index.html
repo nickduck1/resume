@@ -426,9 +426,9 @@ body {
 }
 .cv-exp-item { margin-bottom: 12px; padding-bottom: 12px; page-break-inside: avoid; position: relative; }
 .cv-exp-item:not(:last-child) { border-bottom: 1px solid var(--theme-line); }
-.cv-exp-header { margin-bottom: 2px; }
+.cv-exp-header { margin-bottom: 2px; display: flex; justify-content: space-between; align-items: flex-start; }
 .cv-exp-company { font-size: 12px; font-weight: 800; color: var(--theme-title); text-transform: capitalize; }
-.cv-exp-date { font-size: 10px; color: var(--theme-subtitle); font-weight: 700; margin-left: 6px; }
+.cv-exp-date { font-size: 10px; color: var(--theme-subtitle); font-weight: 700; margin-left: 6px; white-space: nowrap; text-align: right; }
 .cv-exp-role { font-size: 11px; font-weight: 800; color: var(--theme-subtitle); margin-bottom: 3px; text-transform: capitalize; }
 .cv-duties { list-style: none; font-size: 10.5px; color: var(--theme-text); line-height: 1.5; padding: 0; margin: 0; }
 .cv-duties li { padding-left: 12px; position: relative; margin-bottom: 2px; }
@@ -607,6 +607,7 @@ body {
   .cv-lang-item td:first-child { display: none; }
 }
 </style>
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
@@ -1345,7 +1346,8 @@ function createExpEditor(idx, data) {
       <button class="btn btn-danger btn-sm" onclick="removeExperience(${idx})">Remove</button>
     </div>
     <div class="field"><label>Company</label><input id="inC${idx}" value="${data.c}"></div>
-    <div class="field"><label>Dates</label><input id="inD${idx}" value="${data.d}"></div>
+    <div class="field"><label>From</label><input id="inFrom${idx}" value="${data.from || ''}" placeholder="e.g. January 2025"></div>
+    <div class="field"><label>To</label><input id="inTo${idx}" value="${data.to || ''}" placeholder="e.g. July 2026"></div>
     <div class="field"><label>Role</label><input id="inR${idx}" value="${data.r}"></div>
     <div class="field"><label>Duties (one per line)</label><textarea id="inDu${idx}" rows="4">${data.du}</textarea></div>
   `;
@@ -1372,9 +1374,12 @@ function addExperience(data) {
   document.getElementById('expContainer').appendChild(createExpEditor(idx, data));
   document.getElementById('cvExpContainer').appendChild(createExpPreview(idx, data));
   bind('inC' + idx, 'cvC' + idx);
-  bind('inD' + idx, 'cvD' + idx);
   bind('inR' + idx, 'cvR' + idx);
   bind('inDu' + idx, 'cvDu' + idx, true);
+  const fromEl = document.getElementById('inFrom' + idx);
+  const toEl = document.getElementById('inTo' + idx);
+  if (fromEl) fromEl.addEventListener('input', () => updateExpDate(idx));
+  if (toEl) toEl.addEventListener('input', () => updateExpDate(idx));
   if (reshapeMode) setTimeout(initAllDragHandles, 10);
   setTimeout(addInputControlButtons, 10);
 }
@@ -1384,6 +1389,18 @@ function removeExperience(idx) {
   const p = document.getElementById('cvExp' + idx);
   if (g) g.remove();
   if (p) p.remove();
+}
+
+function updateExpDate(idx) {
+  const from = document.getElementById('inFrom' + idx)?.value || '';
+  const to = document.getElementById('inTo' + idx)?.value || '';
+  const dateEl = document.getElementById('cvD' + idx);
+  if (dateEl) {
+    if (from && to) dateEl.textContent = from + ' – ' + to;
+    else if (from) dateEl.textContent = from;
+    else if (to) dateEl.textContent = to;
+    else dateEl.textContent = '';
+  }
 }
 
 defaultExp.forEach(e => addExperience(e));
@@ -1699,8 +1716,8 @@ function addInputControlButtons() {
       } else if (inputId.startsWith('inC')) {
         targetId = [inputId.replace('inC', 'cvC')];
         labelText = 'Company';
-      } else if (inputId.startsWith('inD')) {
-        targetId = [inputId.replace('inD', 'cvD')];
+      } else if (inputId.startsWith('inFrom') || inputId.startsWith('inTo')) {
+        targetId = [inputId.replace('inFrom', 'cvD').replace('inTo', 'cvD')];
         labelText = 'Date';
       } else if (inputId.startsWith('inR')) {
         targetId = [inputId.replace('inR', 'cvR')];
@@ -1796,10 +1813,11 @@ function gatherState() {
   const experiences = [];
   for (let i = 0; i < expCount; i++) {
     const c = document.getElementById('inC' + i);
-    const d = document.getElementById('inD' + i);
+    const from = document.getElementById('inFrom' + i);
+    const to = document.getElementById('inTo' + i);
     const r = document.getElementById('inR' + i);
     const du = document.getElementById('inDu' + i);
-    if (c) experiences.push({c: c.value, d: d.value, r: r.value, du: du.value});
+    if (c) experiences.push({c: c.value, from: from?.value || '', to: to?.value || '', r: r.value, du: du.value});
   }
 
   const languages = [];
@@ -1958,7 +1976,14 @@ function loadState() {
   document.getElementById('cvExpContainer').innerHTML = '';
   expCount = 0;
   if (Array.isArray(s.experiences) && s.experiences.length > 0) {
-    s.experiences.forEach(e => addExperience(e));
+    s.experiences.forEach(e => {
+      if (e.d && (!e.from || !e.to)) {
+        const parts = e.d.split('–').map(s => s.trim());
+        e.from = parts[0] || '';
+        e.to = parts[1] || '';
+      }
+      addExperience(e);
+    });
   } else {
     defaultExp.forEach(e => addExperience(e));
   }
