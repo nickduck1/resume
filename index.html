@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Editor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  height: 44px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+.topbar h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e94560;
+}
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: #0f3460;
+  color: #eee;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn:hover { background: #1a4a7a; }
+.btn-primary {
+  background: #e94560;
+  color: #fff;
+}
+.btn-primary:hover { background: #ff6b81; }
+.btn-saved { background: #27ae60 !important; color: #fff !important; }
+.btn-danger {
+  background: #c0392b;
+  color: #fff;
+}
+.btn-danger:hover { background: #e74c3c; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn.active {
+  background: #e94560;
+  color: #fff;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.wrapper {
+  display: flex;
+  gap: 0;
+  height: calc(100vh - 44px);
+}
+
+/* ===== EDIT PANEL ===== */
+.panel {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #1a1a2e;
+}
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.group {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.group h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e94560;
+  margin: 0 0 2px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #0f3460;
+  position: relative;
+}
+.group-title-ctrl {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: #0f3460;
+  color: #eee;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+.group:hover .group-title-ctrl {
+  opacity: 1;
+  pointer-events: auto;
+}
+.group-title-ctrl:hover {
+  background: #e94560;
+}
+
+.group-resize-btn {
+  position: absolute;
+  right: 26px;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: #0f3460;
+  color: #eee;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+.group:hover .group-resize-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.group-resize-btn:hover {
+  background: #e94560;
+}
+
+/* ===== INPUT CONTROL BUTTON ===== */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+.field label {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 500;
+}
+.field input, .field textarea {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  background: #1a1a2e;
+  color: #eee;
+  outline: none;
+  resize: vertical;
+}
+.field input:focus, .field textarea:focus { border-color: #e94560; }
+.field textarea { min-height: 50px; line-height: 1.4; }
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.photo-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #0f3460;
+}
+.exp-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.exp-header-row h3 { flex: 1; }
+
+/* ===== COLOR PICKER ROW ===== */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.color-row label {
+  font-size: 11px;
+  color: #aaa;
+  min-width: 70px;
+}
+.color-row input[type="color"] {
+  width: 40px;
+  height: 28px;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ===== INPUT CONTROL BUTTON ===== */
+.input-ctrl-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: #0f3460;
+  color: #eee;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.field:hover .input-ctrl-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+.input-ctrl-btn:hover { background: #e94560; }
+
+/* ===== INPUT CONTROL POPUP (no dimming) ===== */
+.ic-popup {
+  position: fixed;
+  top: 60px;
+  left: 60px;
+  background: #16213e;
+  border: 1px solid #e94560;
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 300px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.ic-popup.active { display: flex; }
+.ic-box h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e94560;
+  margin: 0;
+  text-align: center;
+}
+.ic-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ic-row label {
+  font-size: 12px;
+  color: #aaa;
+  min-width: 60px;
+}
+.ic-row input[type="range"] {
+  flex: 1;
+  accent-color: #e94560;
+}
+.ic-num {
+  width: 50px;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: #eee;
+  text-align: center;
+}
+.ic-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* ===== RESHAPE MODE: FLOATING HINT ===== */
+.reshape-hint {
+  position: fixed;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #16213e;
+  border: 1px solid #e94560;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #eee;
+  z-index: 300;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+.reshape-hint.active { display: block; }
+.reshape-hint strong { color: #e94560; }
+
+/* ===== PREVIEW AREA ===== */
+.preview-wrap {
+  flex: 1;
+  overflow: auto;
+  background: #d0d0d0;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  position: relative;
+}
+
+/* ===== RESUME STYLES ===== */
+.cv-container {
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  display: flex;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--theme-text);
+  line-height: 1.5;
+  font-size: 12px;
+  position: relative;
+  --theme-title: #000000;
+  --theme-subtitle: #333333;
+  --theme-text: #222222;
+  --theme-line: #000000;
+  --theme-split: #ccc;
+  --theme-pfp: #bbb;
+}
+.cv-left {
+  width: 35%;
+  background: #f0f0f0 !important;
+  padding: 30px 20px;
+  border-right: 2px solid var(--theme-split);
+  flex-shrink: 0;
+  position: relative;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.cv-profile { text-align: center; margin-bottom: 18px; }
+.cv-pfp {
+  width: 110px; height: 110px;
+  border-radius: 50%; object-fit: cover;
+  border: 3px solid var(--theme-pfp); margin-bottom: 10px;
+}
+.cv-section { margin-bottom: 18px; position: relative; }
+.cv-section-title {
+  font-size: 13px; font-weight: 800; color: var(--theme-title);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 2px solid var(--theme-line);
+}
+.cv-about { font-size: 11px; color: var(--theme-text); text-align: left; line-height: 1.55; }
+.cv-skills {
+  list-style: none; font-size: 11px; color: var(--theme-text);
+  column-count: 2; column-gap: 8px; padding: 0;
+}
+.cv-skills.single-col {
+  column-count: 1;
+}
+.cv-skills li { padding: 2px 0 2px 10px; position: relative; break-inside: avoid; }
+.cv-skills li::before { content: "•"; position: absolute; left: 0; color: var(--theme-title); }
+.cv-info { font-size: 11px; color: var(--theme-text); font-weight: 600; }
+.cv-edu { margin-bottom: 8px; position: relative; }
+.cv-edu-year { font-size: 10px; color: var(--theme-subtitle); font-weight: 700; }
+.cv-edu-school { font-size: 11px; font-weight: 700; color: var(--theme-title); }
+.cv-edu-major { font-size: 10px; color: var(--theme-subtitle); }
+.cv-lang { width: 100%; font-size: 11px; }
+.cv-lang td { padding: 2px 0; color: var(--theme-text); }
+.cv-lang-level { color: var(--theme-subtitle); font-style: italic; font-weight: 600; }
+.cv-right {
+  width: 65%;
+  padding: 32px 28px;
+  flex: 1;
+  position: relative;
+}
+.cv-header {
+  margin-bottom: 18px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--theme-line);
+}
+.cv-name { font-size: 28px; font-weight: 900; color: var(--theme-title); letter-spacing: 0.5px; margin-bottom: 2px; }
+.cv-job { font-size: 13px; color: var(--theme-subtitle); font-weight: 700; margin-bottom: 8px; }
+.cv-contacts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 11px; color: var(--theme-text); }
+.cv-contact-label { font-weight: 800; color: var(--theme-title); }
+.cv-exp-title {
+  font-size: 14px; font-weight: 800; color: var(--theme-title);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 12px; padding-bottom: 4px;
+  border-bottom: 2px solid var(--theme-line);
+}
+.cv-exp-item { margin-bottom: 12px; padding-bottom: 12px; page-break-inside: avoid; position: relative; }
+.cv-exp-item:not(:last-child) { border-bottom: 1px solid var(--theme-line); }
+.cv-exp-header { margin-bottom: 2px; }
+.cv-exp-company { font-size: 12px; font-weight: 800; color: var(--theme-title); text-transform: capitalize; }
+.cv-exp-date { font-size: 10px; color: var(--theme-subtitle); font-weight: 700; margin-left: 6px; }
+.cv-exp-role { font-size: 11px; font-weight: 800; color: var(--theme-subtitle); margin-bottom: 3px; text-transform: capitalize; }
+.cv-duties { list-style: none; font-size: 10.5px; color: var(--theme-text); line-height: 1.5; padding: 0; margin: 0; }
+.cv-duties li { padding-left: 12px; position: relative; margin-bottom: 2px; }
+.cv-duties li::before { content: "•"; position: absolute; left: 0; color: var(--theme-title); font-weight: bold; }
+[contenteditable="true"] { outline: 1px dashed transparent; border-radius: 2px; transition: outline-color 0.15s; }
+[contenteditable="true"]:hover { outline-color: #999; }
+[contenteditable="true"]:focus { outline-color: #000; }
+
+/* ===== RESHAPE MODE: RESIZE HANDLES ===== */
+.reshape-handle {
+  position: absolute;
+  background: #e94560;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.reshape-mode .reshape-handle {
+  opacity: 1;
+}
+.handle-lr {
+  top: 0;
+  right: -6px;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+  border-radius: 0 4px 4px 0;
+}
+.handle-lr::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 1px;
+}
+.handle-move {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: #e94560;
+  border-radius: 4px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #fff;
+  z-index: 200;
+  opacity: 0;
+  user-select: none;
+  line-height: 1;
+}
+.reshape-mode .handle-move {
+  opacity: 1;
+}
+.handle-move:active { cursor: grabbing; }
+
+/* ===== RESHAPE MODE: HIGHLIGHTS ===== */
+.reshape-mode .cv-left,
+.reshape-mode .cv-right,
+.reshape-mode .cv-section,
+.reshape-mode .cv-exp-item,
+.reshape-mode .cv-edu {
+  outline: 1px dashed #e94560;
+  outline-offset: 2px;
+}
+.reshape-mode .cv-left:hover,
+.reshape-mode .cv-right:hover,
+.reshape-mode .cv-section:hover,
+.reshape-mode .cv-exp-item:hover,
+.reshape-mode .cv-edu:hover,
+.reshape-mode .cv-contact-item:hover,
+.reshape-mode .cv-skill-item:hover,
+.reshape-mode .cv-lang-item:hover {
+  outline: 2px solid #e94560;
+  background: rgba(233,69,96,0.03);
+}
+.reshape-mode .cv-skill-item {
+  position: relative;
+  outline: 1px dashed #e94560;
+  outline-offset: 2px;
+  padding-left: 20px !important;
+}
+.reshape-mode .cv-skill-item .handle-move {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+  border-radius: 3px;
+}
+.reshape-mode .cv-lang-item {
+  position: relative;
+  outline: 1px dashed #e94560;
+  outline-offset: 2px;
+}
+.reshape-mode .cv-lang-item .handle-move {
+  position: relative;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.cv-lang-item td:first-child {
+  width: 20px;
+  padding: 0;
+}
+.reshape-mode .cv-contact-item {
+  position: relative;
+  outline: 1px dashed #e94560;
+  outline-offset: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.reshape-mode .cv-contact-item .handle-move {
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+/* Dragging visual feedback */
+.dragging-section {
+  opacity: 0.4;
+  outline: 2px solid #e94560 !important;
+}
+.drop-indicator {
+  height: 3px;
+  background: #e94560;
+  border-radius: 2px;
+  margin: 4px 0;
+  pointer-events: none;
+}
+
+/* ===== PRINT FIXES ===== */
+@media print {
+  body { background: #fff !important; margin: 0; }
+  .topbar, .panel, .reshape-hint, .reshape-handle, .handle-move, .ic-popup { display: none !important; }
+  .wrapper { display: block; height: auto; }
+  .preview-wrap {
+    background: #fff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .cv-container {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    page-break-inside: avoid;
+  }
+  .cv-left {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .cv-left, .cv-right, .cv-section, .cv-exp-item, .cv-contact-item, .cv-skill-item, .cv-lang-item, .cv-edu {
+    outline: none !important;
+  }
+  .cv-contact-item .handle-move, .cv-skill-item .handle-move, .cv-lang-item .handle-move, .cv-edu .handle-move { display: none !important; }
+  .cv-skill-item { padding-left: 10px !important; }
+  .cv-lang-item td:first-child { display: none; }
+}
+</style>
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Resume Editor</h1>
+  <div class="topbar-actions">
+    <button class="btn" id="reshapeBtn" onclick="toggleReshape()">Reshape Mode</button>
+    <button class="btn btn-primary" onclick="printResume()">Print / Save PDF</button>
+    <button class="btn" onclick="downloadResume()">Download HTML</button>
+    <button class="btn" id="saveBtn" onclick="saveState()">Save</button>
+    <button class="btn" onclick="saveAsFile()">Save as file</button>
+    <button class="btn" onclick="loadFromFile()">Load from file</button>
+    <input type="file" id="loadFileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+    <button class="btn btn-danger" onclick="clearSession()">Clear Session</button>
+  </div>
+</div>
+
+<!-- Floating hint -->
+<div class="reshape-hint" id="reshapeHint">
+  <strong>Reshape Mode ON</strong> — Drag the <strong>red bar</strong> to resize columns. Drag <strong>⋮⋮</strong> to reorder sections & experiences.
+</div>
+
+<!-- Input Control Popup (no backdrop dimming) -->
+<div class="ic-popup" id="icPopup">
+  <h4 id="icTitle">Input Control</h4>
+  <div class="ic-row">
+    <label>Font size</label>
+    <input type="range" id="icSlider" min="8" max="32" step="0.5" value="12">
+    <input type="number" id="icNum" class="ic-num" min="8" max="32" step="0.5" value="12">
+    <span style="font-size:11px;color:#aaa;">px</span>
+  </div>
+  <div class="ic-btns">
+    <button class="btn" onclick="icReset()">Reset</button>
+    <button class="btn" onclick="icCancel()">Cancel</button>
+    <button class="btn btn-primary" onclick="icOk()">OK</button>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="panel" id="panel">
+    <div class="group">
+      <h3>Profile photo</h3>
+      <div class="photo-row">
+        <img id="thumb" class="photo-thumb" src="https://via.placeholder.com/110x110/333/fff?text=Photo">
+        <input type="file" id="pfpInput" accept="image/*" style="font-size:11px;color:#eee;">
+      </div>
+      <div class="color-row">
+        <label>Photo size</label>
+        <input type="range" id="photoSizeSlider" min="50" max="220" value="110" style="flex:1;accent-color:#e94560;">
+        <span id="photoSizeVal" style="font-size:11px;color:#eee;min-width:40px;text-align:right;">110px</span>
+        <button class="btn btn-sm" onclick="resetPhotoSize()">Reset</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Header</h3>
+      <div class="field"><label>Name</label><input id="inName" value="TEST NAME HERE"></div>
+      <div class="field"><label>Job title</label><input id="inJob" value="Customer Service"></div>
+      <div class="field"><label>Phone</label><input id="inPhone" value="050-000-0000"></div>
+      <div class="field"><label>Email</label><input id="inEmail" value="test.email@example.com"></div>
+      <div class="field"><label>Address</label><input id="inAddress" value="JVC, Dubai"></div>
+    </div>
+
+    <div class="group">
+      <h3>About me</h3>
+      <div class="field"><label>Summary</label><textarea id="inAbout">Customer-focused with experience in cashier operations, customer service, as well as hosting also order handling, and inventory support. Skilled in processing transactions accurately, assisting customers, maintaining smooth daily operations, and working effectively in fast-paced environments. Eager to develop skills and contribute to a successful team.</textarea></div>
+    </div>
+
+    <div class="group">
+      <h3>Skills</h3>
+      <div class="field"><label>Skills list (one per line)</label><textarea id="inSkills" rows="6">Flexible and adaptable
+Culture awareness
+Fast learning
+Organized
+Time management
+Communication and presentation skills
+POS system
+Critical system
+Data analysis
+Team work
+Detail-Oriented & Documentation</textarea></div>
+      <div class="color-row" style="margin-top:4px;">
+        <label>Two-column layout</label>
+        <input type="checkbox" id="skillsTwoCol" checked style="width:18px;height:18px;accent-color:#e94560;cursor:pointer;">
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Nationality</h3>
+      <div class="field"><label>Nationality</label><input id="inNat" value="Egyptian"></div>
+    </div>
+
+    <div class="group">
+      <h3>Education</h3>
+      <div id="eduContainer"></div>
+      <div style="display:flex;gap:8px;padding-top:8px;">
+        <button class="btn btn-primary" onclick="addEducation()">+ Add Education</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Languages</h3>
+      <div id="langContainer"></div>
+      <div style="display:flex;gap:8px;padding-top:8px;">
+        <button class="btn btn-primary" onclick="addLanguage()">+ Add Language</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Themes</h3>
+      <div class="color-row">
+        <label>Titles</label>
+        <input type="color" id="themeTitle" value="#000000">
+        <button class="btn btn-primary btn-sm" onclick="applyThemeTitle()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemeTitle()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemeTitle()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Subtitles</label>
+        <input type="color" id="themeSubtitle" value="#333333">
+        <button class="btn btn-primary btn-sm" onclick="applyThemeSubtitle()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemeSubtitle()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemeSubtitle()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Text</label>
+        <input type="color" id="themeText" value="#222222">
+        <button class="btn btn-primary btn-sm" onclick="applyThemeText()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemeText()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemeText()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Lines</label>
+        <input type="color" id="themeLine" value="#000000">
+        <button class="btn btn-primary btn-sm" onclick="applyThemeLine()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemeLine()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemeLine()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Split Line</label>
+        <input type="color" id="themeSplit" value="#ccc">
+        <button class="btn btn-primary btn-sm" onclick="applyThemeSplit()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemeSplit()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemeSplit()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Photo Border</label>
+        <input type="color" id="themePfp" value="#bbb">
+        <button class="btn btn-primary btn-sm" onclick="applyThemePfp()">OK</button>
+        <button class="btn btn-sm" onclick="cancelThemePfp()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetThemePfp()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Left sidebar</label>
+        <input type="color" id="colorLeft" value="#f0f0f0">
+        <button class="btn btn-primary btn-sm" onclick="applyColorLeft()">OK</button>
+        <button class="btn btn-sm" onclick="cancelColorLeft()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetColorLeft()">Reset</button>
+      </div>
+      <div class="color-row">
+        <label>Right content</label>
+        <input type="color" id="colorRight" value="#ffffff">
+        <button class="btn btn-primary btn-sm" onclick="applyColorRight()">OK</button>
+        <button class="btn btn-sm" onclick="cancelColorRight()">Cancel</button>
+        <button class="btn btn-sm" onclick="resetColorRight()">Reset</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Column Split</h3>
+      <div class="color-row">
+        <label>Left width</label>
+        <input type="range" id="splitSlider" min="20" max="50" value="35" style="flex:1;accent-color:#e94560;">
+        <span id="splitVal" style="font-size:11px;color:#eee;min-width:30px;text-align:right;">35%</span>
+      </div>
+      <button class="btn btn-sm" onclick="resetSplit()" style="align-self:flex-start;">Reset split</button>
+    </div>
+
+    <div class="group">
+      <h3>Experience Title</h3>
+      <div class="color-row">
+        <label>Title size</label>
+        <input type="range" id="expTitleSlider" min="10" max="28" value="14" step="0.5" style="flex:1;accent-color:#e94560;">
+        <span id="expTitleVal" style="font-size:11px;color:#eee;min-width:40px;text-align:right;">14px</span>
+        <button class="btn btn-sm" onclick="resetExpTitleSize()">Reset</button>
+      </div>
+    </div>
+
+    <div id="expContainer"></div>
+
+    <div style="display:flex;gap:8px;padding-bottom:12px;">
+      <button class="btn btn-primary" onclick="addExperience()">+ Add Experience</button>
+    </div>
+  </div>
+
+  <div class="preview-wrap" id="previewWrap">
+    <div class="cv-container" id="cv">
+      <div class="cv-left" id="cvLeft">
+        <div class="reshape-handle handle-lr" id="lrHandle" title="Drag to resize left/right columns"></div>
+        <div class="cv-profile">
+          <img id="cvPfp" class="cv-pfp" src="https://via.placeholder.com/110x110/333/fff?text=Photo">
+        </div>
+        <div class="cv-section" id="secAbout" draggable="false">
+          <div class="handle-move" title="Drag to reorder this section">⋮⋮</div>
+          <div class="cv-section-title">About Me</div>
+          <div class="cv-about" id="cvAbout" contenteditable="true">Customer-focused with experience in cashier operations, customer service, as well as hosting also order handling, and inventory support. Skilled in processing transactions accurately, assisting customers, maintaining smooth daily operations, and working effectively in fast-paced environments. Eager to develop skills and contribute to a successful team.</div>
+        </div>
+        <div class="cv-section" id="secSkills" draggable="false">
+          <div class="handle-move" title="Drag to reorder this section">⋮⋮</div>
+          <div class="cv-section-title">Skills</div>
+          <ul class="cv-skills" id="cvSkills">
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Flexible and adaptable</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Culture awareness</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Fast learning</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Organized</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Time management</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Communication and presentation skills</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">POS system</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Critical system</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Data analysis</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Team work</span></li>
+            <li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">Detail-Oriented & Documentation</span></li>
+          </ul>
+        </div>
+        <div class="cv-section" id="secNat" draggable="false">
+          <div class="handle-move" title="Drag to reorder this section">⋮⋮</div>
+          <div class="cv-section-title">Nationality</div>
+          <div class="cv-info" id="cvNat">Egyptian</div>
+        </div>
+        <div class="cv-section" id="secEdu" draggable="false">
+          <div class="handle-move" title="Drag to reorder this section">⋮⋮</div>
+          <div class="cv-section-title">Education</div>
+        </div>
+        <div class="cv-section" id="secLang" draggable="false">
+          <div class="handle-move" title="Drag to reorder this section">⋮⋮</div>
+          <div class="cv-section-title">Languages</div>
+          <table class="cv-lang" id="cvLangTable">
+          </table>
+        </div>
+      </div>
+      <div class="cv-right" id="cvRight">
+        <div class="cv-header">
+          <div class="cv-name" id="cvName">TEST NAME HERE</div>
+          <div class="cv-job" id="cvJob">Customer Service</div>
+          <div class="cv-contacts" id="cvContacts">
+            <span class="cv-contact-item" id="cvContactPhone" draggable="false"><div class="handle-move" title="Drag to reorder contact">⋮⋮</div><span class="cv-contact-label">Phone:</span> <span id="cvPhone">050-000-0000</span></span>
+            <span class="cv-contact-item" id="cvContactEmail" draggable="false"><div class="handle-move" title="Drag to reorder contact">⋮⋮</div><span class="cv-contact-label">Email:</span> <span id="cvEmail">test.email@example.com</span></span>
+            <span class="cv-contact-item" id="cvContactAddress" draggable="false"><div class="handle-move" title="Drag to reorder contact">⋮⋮</div><span class="cv-contact-label">Address:</span> <span id="cvAddress">JVC, Dubai</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="cv-exp-title">Experience</div>
+          <div id="cvExpContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let reshapeMode = false;
+function toggleReshape() {
+  reshapeMode = !reshapeMode;
+  document.body.classList.toggle('reshape-mode', reshapeMode);
+  document.getElementById('reshapeHint').classList.toggle('active', reshapeMode);
+  document.getElementById('reshapeBtn').classList.toggle('active', reshapeMode);
+  document.getElementById('reshapeBtn').textContent = reshapeMode ? 'Exit Reshape' : 'Reshape Mode';
+}
+
+/* ===== THEME CONTROLS ===== */
+const themeTitleInput = document.getElementById('themeTitle');
+const themeSubtitleInput = document.getElementById('themeSubtitle');
+const themeTextInput = document.getElementById('themeText');
+const themeLineInput = document.getElementById('themeLine');
+const themeSplitInput = document.getElementById('themeSplit');
+const themePfpInput = document.getElementById('themePfp');
+const cvContainer = document.getElementById('cv');
+
+const DEFAULT_THEME_TITLE = '#000000';
+const DEFAULT_THEME_SUBTITLE = '#333333';
+const DEFAULT_THEME_TEXT = '#222222';
+const DEFAULT_THEME_LINE = '#000000';
+const DEFAULT_THEME_SPLIT = '#ccc';
+const DEFAULT_THEME_PFP = '#bbb';
+
+let appliedThemeTitle = DEFAULT_THEME_TITLE;
+let appliedThemeSubtitle = DEFAULT_THEME_SUBTITLE;
+let appliedThemeText = DEFAULT_THEME_TEXT;
+let appliedThemeLine = DEFAULT_THEME_LINE;
+let appliedThemeSplit = DEFAULT_THEME_SPLIT;
+let appliedThemePfp = DEFAULT_THEME_PFP;
+
+function setThemeVar(name, value) {
+  cvContainer.style.setProperty(name, value);
+}
+
+themeTitleInput.addEventListener('input', () => setThemeVar('--theme-title', themeTitleInput.value));
+themeSubtitleInput.addEventListener('input', () => setThemeVar('--theme-subtitle', themeSubtitleInput.value));
+themeTextInput.addEventListener('input', () => setThemeVar('--theme-text', themeTextInput.value));
+themeLineInput.addEventListener('input', () => setThemeVar('--theme-line', themeLineInput.value));
+themeSplitInput.addEventListener('input', () => setThemeVar('--theme-split', themeSplitInput.value));
+themePfpInput.addEventListener('input', () => setThemeVar('--theme-pfp', themePfpInput.value));
+
+function applyThemeTitle() { appliedThemeTitle = themeTitleInput.value; }
+function cancelThemeTitle() { themeTitleInput.value = appliedThemeTitle; setThemeVar('--theme-title', appliedThemeTitle); }
+function resetThemeTitle() { themeTitleInput.value = DEFAULT_THEME_TITLE; appliedThemeTitle = DEFAULT_THEME_TITLE; setThemeVar('--theme-title', DEFAULT_THEME_TITLE); }
+
+function applyThemeSubtitle() { appliedThemeSubtitle = themeSubtitleInput.value; }
+function cancelThemeSubtitle() { themeSubtitleInput.value = appliedThemeSubtitle; setThemeVar('--theme-subtitle', appliedThemeSubtitle); }
+function resetThemeSubtitle() { themeSubtitleInput.value = DEFAULT_THEME_SUBTITLE; appliedThemeSubtitle = DEFAULT_THEME_SUBTITLE; setThemeVar('--theme-subtitle', DEFAULT_THEME_SUBTITLE); }
+
+function applyThemeText() { appliedThemeText = themeTextInput.value; }
+function cancelThemeText() { themeTextInput.value = appliedThemeText; setThemeVar('--theme-text', appliedThemeText); }
+function resetThemeText() { themeTextInput.value = DEFAULT_THEME_TEXT; appliedThemeText = DEFAULT_THEME_TEXT; setThemeVar('--theme-text', DEFAULT_THEME_TEXT); }
+
+function applyThemeLine() { appliedThemeLine = themeLineInput.value; }
+function cancelThemeLine() { themeLineInput.value = appliedThemeLine; setThemeVar('--theme-line', appliedThemeLine); }
+function resetThemeLine() { themeLineInput.value = DEFAULT_THEME_LINE; appliedThemeLine = DEFAULT_THEME_LINE; setThemeVar('--theme-line', DEFAULT_THEME_LINE); }
+
+function applyThemeSplit() { appliedThemeSplit = themeSplitInput.value; }
+function cancelThemeSplit() { themeSplitInput.value = appliedThemeSplit; setThemeVar('--theme-split', appliedThemeSplit); }
+function resetThemeSplit() { themeSplitInput.value = DEFAULT_THEME_SPLIT; appliedThemeSplit = DEFAULT_THEME_SPLIT; setThemeVar('--theme-split', DEFAULT_THEME_SPLIT); }
+
+function applyThemePfp() { appliedThemePfp = themePfpInput.value; }
+function cancelThemePfp() { themePfpInput.value = appliedThemePfp; setThemeVar('--theme-pfp', appliedThemePfp); }
+function resetThemePfp() { themePfpInput.value = DEFAULT_THEME_PFP; appliedThemePfp = DEFAULT_THEME_PFP; setThemeVar('--theme-pfp', DEFAULT_THEME_PFP); }
+
+/* ===== COLOR CONTROLS ===== */
+const colorLeftInput = document.getElementById('colorLeft');
+const colorRightInput = document.getElementById('colorRight');
+const cvLeft = document.getElementById('cvLeft');
+const cvRight = document.getElementById('cvRight');
+
+const DEFAULT_LEFT_COLOR = '#f0f0f0';
+const DEFAULT_RIGHT_COLOR = '#ffffff';
+let appliedLeftColor = DEFAULT_LEFT_COLOR;
+let appliedRightColor = DEFAULT_RIGHT_COLOR;
+
+colorLeftInput.addEventListener('input', () => {
+  cvLeft.style.setProperty('background', colorLeftInput.value, 'important');
+});
+colorRightInput.addEventListener('input', () => {
+  cvRight.style.setProperty('background', colorRightInput.value, 'important');
+});
+
+function resetColorLeft() {
+  colorLeftInput.value = DEFAULT_LEFT_COLOR;
+  appliedLeftColor = DEFAULT_LEFT_COLOR;
+  cvLeft.style.setProperty('background', DEFAULT_LEFT_COLOR, 'important');
+}
+function resetColorRight() {
+  colorRightInput.value = DEFAULT_RIGHT_COLOR;
+  appliedRightColor = DEFAULT_RIGHT_COLOR;
+  cvRight.style.setProperty('background', DEFAULT_RIGHT_COLOR, 'important');
+}
+function applyColorLeft() {
+  appliedLeftColor = colorLeftInput.value;
+  cvLeft.style.setProperty('background', appliedLeftColor, 'important');
+}
+function applyColorRight() {
+  appliedRightColor = colorRightInput.value;
+  cvRight.style.setProperty('background', appliedRightColor, 'important');
+}
+function cancelColorLeft() {
+  colorLeftInput.value = appliedLeftColor;
+  cvLeft.style.setProperty('background', appliedLeftColor, 'important');
+}
+function cancelColorRight() {
+  colorRightInput.value = appliedRightColor;
+  cvRight.style.setProperty('background', appliedRightColor, 'important');
+}
+
+/* ===== SPLIT SLIDER ===== */
+const splitSlider = document.getElementById('splitSlider');
+const splitVal = document.getElementById('splitVal');
+
+splitSlider.addEventListener('input', () => {
+  const v = splitSlider.value;
+  splitVal.textContent = v + '%';
+  cvLeft.style.width = v + '%';
+  cvRight.style.width = (100 - v) + '%';
+});
+
+function resetSplit() {
+  splitSlider.value = 35;
+  splitVal.textContent = '35%';
+  cvLeft.style.width = '35%';
+  cvRight.style.width = '65%';
+}
+
+/* ===== PHOTO SIZE ===== */
+const photoSizeSlider = document.getElementById('photoSizeSlider');
+const photoSizeVal = document.getElementById('photoSizeVal');
+const cvPfpImg = document.getElementById('cvPfp');
+const DEFAULT_PHOTO_SIZE = 110;
+
+photoSizeSlider.addEventListener('input', () => {
+  const v = photoSizeSlider.value;
+  photoSizeVal.textContent = v + 'px';
+  cvPfpImg.style.width = v + 'px';
+  cvPfpImg.style.height = v + 'px';
+});
+
+function resetPhotoSize() {
+  photoSizeSlider.value = DEFAULT_PHOTO_SIZE;
+  photoSizeVal.textContent = DEFAULT_PHOTO_SIZE + 'px';
+  cvPfpImg.style.width = '';
+  cvPfpImg.style.height = '';
+}
+
+/* ===== INPUT CONTROL POPUP ===== */
+let icTarget = null;
+let icOriginalSize = 12;
+let icGroupData = null; // {el, originalSize}[] for proportional group resize
+
+function openInputControl(targetId, label, anchorEl) {
+  icGroupData = null;
+  let targetIds = Array.isArray(targetId) ? targetId : [targetId];
+  icTarget = [];
+  let firstSize = null;
+  targetIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      icTarget.push(el);
+      if (firstSize === null) {
+        firstSize = parseFloat(window.getComputedStyle(el).fontSize);
+      }
+    }
+  });
+  if (icTarget.length === 0) return;
+  const currentSize = firstSize;
+  icOriginalSize = currentSize;
+
+  document.getElementById('icTitle').textContent = 'Input Control: ' + label;
+  const slider = document.getElementById('icSlider');
+  const num = document.getElementById('icNum');
+  slider.value = currentSize;
+  num.value = currentSize;
+
+  const popup = document.getElementById('icPopup');
+  popup.style.visibility = 'hidden';
+  popup.classList.add('active');
+  positionPopupNear(anchorEl);
+  popup.style.visibility = 'visible';
+}
+
+function openGroupResize(getElementsFunc, label, anchorEl) {
+  icTarget = null;
+  const elements = getElementsFunc().filter(el => el);
+  if (elements.length === 0) return;
+  
+  icGroupData = elements.map(el => ({
+    el: el,
+    originalSize: parseFloat(window.getComputedStyle(el).fontSize)
+  }));
+  
+  const referenceSize = icGroupData[0].originalSize;
+  
+  document.getElementById('icTitle').textContent = 'Resize Group: ' + label;
+  const slider = document.getElementById('icSlider');
+  const num = document.getElementById('icNum');
+  slider.value = referenceSize;
+  num.value = referenceSize;
+
+  const popup = document.getElementById('icPopup');
+  popup.style.visibility = 'hidden';
+  popup.classList.add('active');
+  positionPopupNear(anchorEl);
+  popup.style.visibility = 'visible';
+}
+
+function positionPopupNear(anchorEl) {
+  const popup = document.getElementById('icPopup');
+  if (!anchorEl) return;
+  const rect = anchorEl.getBoundingClientRect();
+  const popupRect = popup.getBoundingClientRect();
+  const margin = 10;
+
+  let left = rect.right + margin;
+  let top = rect.top;
+
+  if (left + popupRect.width > window.innerWidth - margin) {
+    left = rect.left - popupRect.width - margin;
+  }
+  if (left < margin) left = margin;
+  if (left + popupRect.width > window.innerWidth - margin) {
+    left = window.innerWidth - popupRect.width - margin;
+  }
+
+  if (top + popupRect.height > window.innerHeight - margin) {
+    top = window.innerHeight - popupRect.height - margin;
+  }
+  if (top < margin) top = margin;
+
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+}
+
+function icReset() {
+  if (icGroupData) {
+    icGroupData.forEach(item => {
+      item.el.style.fontSize = '';
+    });
+    if (icGroupData.length > 0) {
+      const computed = parseFloat(window.getComputedStyle(icGroupData[0].el).fontSize);
+      document.getElementById('icSlider').value = computed;
+      document.getElementById('icNum').value = computed;
+      icGroupData.forEach(item => {
+        item.originalSize = parseFloat(window.getComputedStyle(item.el).fontSize);
+      });
+    }
+  } else if (icTarget) {
+    icTarget.forEach(el => el.style.fontSize = '');
+    if (icTarget.length > 0) {
+      const computed = parseFloat(window.getComputedStyle(icTarget[0]).fontSize);
+      document.getElementById('icSlider').value = computed;
+      document.getElementById('icNum').value = computed;
+    }
+  }
+}
+
+function icCancel() {
+  if (icGroupData) {
+    icGroupData.forEach(item => {
+      item.el.style.fontSize = item.originalSize + 'px';
+    });
+    icGroupData = null;
+  } else if (icTarget) {
+    icTarget.forEach(el => el.style.fontSize = icOriginalSize + 'px');
+  }
+  document.getElementById('icPopup').classList.remove('active');
+  icTarget = null;
+}
+
+function icOk() {
+  if (icGroupData) {
+    icGroupData.forEach(item => {
+      item.originalSize = parseFloat(window.getComputedStyle(item.el).fontSize);
+    });
+    icGroupData = null;
+  } else if (icTarget && icTarget.length > 0) {
+    icOriginalSize = parseFloat(window.getComputedStyle(icTarget[0]).fontSize);
+  }
+  document.getElementById('icPopup').classList.remove('active');
+  icTarget = null;
+}
+
+const icSlider = document.getElementById('icSlider');
+const icNum = document.getElementById('icNum');
+
+icSlider.addEventListener('input', () => {
+  const v = parseFloat(icSlider.value);
+  icNum.value = v;
+  if (icGroupData && icGroupData.length > 0) {
+    const ratio = v / icGroupData[0].originalSize;
+    icGroupData.forEach(item => {
+      const newSize = Math.max(8, Math.min(32, item.originalSize * ratio));
+      item.el.style.fontSize = newSize.toFixed(2) + 'px';
+    });
+  } else if (icTarget) {
+    icTarget.forEach(el => el.style.fontSize = v + 'px');
+  }
+});
+
+icNum.addEventListener('input', () => {
+  let v = parseFloat(icNum.value);
+  if (isNaN(v)) return;
+  if (v < 8) v = 8;
+  if (v > 32) v = 32;
+  icSlider.value = v;
+  if (icGroupData && icGroupData.length > 0) {
+    const ratio = v / icGroupData[0].originalSize;
+    icGroupData.forEach(item => {
+      const newSize = Math.max(8, Math.min(32, item.originalSize * ratio));
+      item.el.style.fontSize = newSize.toFixed(2) + 'px';
+    });
+  } else if (icTarget) {
+    icTarget.forEach(el => el.style.fontSize = v + 'px');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') icCancel();
+});
+
+/* ===== LANGUAGES ===== */
+let langCount = 0;
+const defaultLangs = ['English: Fluent', 'French: Basic', 'Arabic: Native'];
+
+function createLangEditor(idx, data) {
+  const div = document.createElement('div');
+  div.className = 'group';
+  div.id = 'langGroup' + idx;
+  div.innerHTML = `
+    <div class="exp-header-row">
+      <h3>Language ${idx + 1}</h3>
+      <button class="btn btn-danger btn-sm" onclick="removeLanguage(${idx})">Remove</button>
+    </div>
+    <div class="field"><label>Language</label><input id="inL${idx}" value="${data}"></div>
+  `;
+  return div;
+}
+
+function createLangPreview(idx, data) {
+  const parts = data.split(':').map(s => s.trim());
+  const tr = document.createElement('tr');
+  tr.className = 'cv-lang-item';
+  tr.id = 'cvLang' + idx;
+  tr.draggable = false;
+  tr.innerHTML = `
+    <td><div class="handle-move" title="Drag to reorder language">⋮⋮</div></td>
+    <td id="cvL${idx}n">${parts[0] || ''}</td>
+    <td class="cv-lang-level" id="cvL${idx}l">${parts[1] || ''}</td>
+  `;
+  return tr;
+}
+
+function addLanguage(data) {
+  const idx = langCount++;
+  if (data === undefined) data = 'Language: Level';
+  const container = document.getElementById('langContainer');
+  const table = document.getElementById('cvLangTable');
+  container.appendChild(createLangEditor(idx, data));
+  table.appendChild(createLangPreview(idx, data));
+  bindLangIdx(idx);
+  if (reshapeMode) setTimeout(initAllDragHandles, 10);
+  setTimeout(addInputControlButtons, 10);
+}
+
+function removeLanguage(idx) {
+  const g = document.getElementById('langGroup' + idx);
+  const p = document.getElementById('cvLang' + idx);
+  if (g) g.remove();
+  if (p) p.remove();
+}
+
+function bindLangIdx(idx) {
+  const el = document.getElementById('inL' + idx);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    const parts = el.value.split(':').map(s => s.trim());
+    const nameEl = document.getElementById('cvL' + idx + 'n');
+    const levelEl = document.getElementById('cvL' + idx + 'l');
+    if (nameEl) nameEl.textContent = parts[0] || '';
+    if (levelEl) levelEl.textContent = parts[1] || '';
+  });
+}
+
+/* ===== EDUCATION ===== */
+let eduCount = 0;
+const defaultEdu = [{year:'2012 – 2017', school:'Faculty of Science, Alexandria University', major:'Geology and Chemistry — Egypt'}];
+
+function createEduEditor(idx, data) {
+  const div = document.createElement('div');
+  div.className = 'group';
+  div.id = 'eduGroup' + idx;
+  div.innerHTML = `
+    <div class="exp-header-row">
+      <h3>Education ${idx + 1}</h3>
+      <button class="btn btn-danger btn-sm" onclick="removeEducation(${idx})">Remove</button>
+    </div>
+    <div class="field"><label>Years</label><input id="inEduYear${idx}" value="${data.year}"></div>
+    <div class="field"><label>School</label><input id="inEduSchool${idx}" value="${data.school}"></div>
+    <div class="field"><label>Major</label><input id="inEduMajor${idx}" value="${data.major}"></div>
+  `;
+  return div;
+}
+
+function createEduPreview(idx, data) {
+  const div = document.createElement('div');
+  div.className = 'cv-edu';
+  div.id = 'cvEdu' + idx;
+  div.innerHTML = `
+    <div class="handle-move" title="Drag to reorder education">⋮⋮</div>
+    <div class="cv-edu-year" id="cvEduYear${idx}">${data.year}</div>
+    <div class="cv-edu-school" id="cvEduSchool${idx}">${data.school}</div>
+    <div class="cv-edu-major" id="cvEduMajor${idx}">${data.major}</div>
+  `;
+  return div;
+}
+
+function addEducation(data) {
+  const idx = eduCount++;
+  if (!data) data = {year: 'Year Range', school: 'School Name', major: 'Major / Degree'};
+  document.getElementById('eduContainer').appendChild(createEduEditor(idx, data));
+  document.getElementById('secEdu').appendChild(createEduPreview(idx, data));
+  bindEduIdx(idx);
+  if (reshapeMode) setTimeout(initAllDragHandles, 10);
+  setTimeout(addInputControlButtons, 10);
+}
+
+function removeEducation(idx) {
+  const g = document.getElementById('eduGroup' + idx);
+  const p = document.getElementById('cvEdu' + idx);
+  if (g) g.remove();
+  if (p) p.remove();
+}
+
+function bindEduIdx(idx) {
+  const yearEl = document.getElementById('inEduYear' + idx);
+  const schoolEl = document.getElementById('inEduSchool' + idx);
+  const majorEl = document.getElementById('inEduMajor' + idx);
+  if (yearEl) yearEl.addEventListener('input', () => {
+    const t = document.getElementById('cvEduYear' + idx);
+    if (t) t.textContent = yearEl.value;
+  });
+  if (schoolEl) schoolEl.addEventListener('input', () => {
+    const t = document.getElementById('cvEduSchool' + idx);
+    if (t) t.textContent = schoolEl.value;
+  });
+  if (majorEl) majorEl.addEventListener('input', () => {
+    const t = document.getElementById('cvEduMajor' + idx);
+    if (t) t.textContent = majorEl.value;
+  });
+}
+
+/* ===== EXPERIENCES ===== */
+let expCount = 0;
+const defaultExp = [
+  {c: "Baraf Desserts and Coffee", d: "December 2025 – July 2026", r: "Cashier and Customer Service Assistant", du: "Process cash and card payments accurately and manage daily cash transactions.\nReceive customer orders, provide menu/product information, and ensure a smooth customer experience.\nHandle customer inquiries and coordinate orders with the team.\nAssist with stock checking, inventory organization, and reporting missing items.\nMaintain a clean and organized work area while following company procedures.\nHandling the account of the company related to the online orders' channels."},
+  {c: "Almostashareen Clinic", d: "May 2024 – May 2025", r: "Customer Service Representative", du: "Maintaining a positive, empathetic, and professional attitude toward customers at all times.\nResponding promptly to customer inquiries keeping records of customer interactions, transactions, comments, and complaints.\nCollect and verify patient details, insurance information, and contact data.\nHandle administrative tasks such as scheduling correspondence, and general support for consultants and managers."},
+  {c: "El-Teacher Educational", d: "2021 – 2023", r: "Receptionist", du: "Update course schedules, contact details, and payment information in the system.\nPrepare and manage documents such as forms, reports, and certificates.\nAlways maintain a positive and professional image of the center.\nHandle inquiries in person or by related."},
+  {c: "El Shafie Store", d: "2017 – 2019", r: "Salesperson", du: "Greeting shoppers to answer their questions and help them find products.\nRestocking shelves, checking stock levels.\nUse protective equipment and maintain a clean working environment.\nCheck for damaged or expired goods and report low stock to supervisor."}
+];
+
+function createExpEditor(idx, data) {
+  const div = document.createElement('div');
+  div.className = 'group';
+  div.id = 'expGroup' + idx;
+  div.innerHTML = `
+    <div class="exp-header-row">
+      <h3>Experience ${idx + 1}</h3>
+      <button class="btn btn-danger btn-sm" onclick="removeExperience(${idx})">Remove</button>
+    </div>
+    <div class="field"><label>Company</label><input id="inC${idx}" value="${data.c}"></div>
+    <div class="field"><label>Dates</label><input id="inD${idx}" value="${data.d}"></div>
+    <div class="field"><label>Role</label><input id="inR${idx}" value="${data.r}"></div>
+    <div class="field"><label>Duties (one per line)</label><textarea id="inDu${idx}" rows="4">${data.du}</textarea></div>
+  `;
+  return div;
+}
+
+function createExpPreview(idx, data) {
+  const lines = data.du.split('\n').filter(l => l.trim()).map(l => '<li>' + l.trim() + '</li>').join('');
+  const div = document.createElement('div');
+  div.className = 'cv-exp-item';
+  div.id = 'cvExp' + idx;
+  div.innerHTML = `
+    <div class="handle-move" title="Drag to reorder this experience">⋮⋮</div>
+    <div class="cv-exp-header"><span class="cv-exp-company" id="cvC${idx}">${data.c}</span> <span class="cv-exp-date" id="cvD${idx}">${data.d}</span></div>
+    <div class="cv-exp-role" id="cvR${idx}">${data.r}</div>
+    <ul class="cv-duties" id="cvDu${idx}">${lines}</ul>
+  `;
+  return div;
+}
+
+function addExperience(data) {
+  const idx = expCount++;
+  if (!data) data = {c: "Company Name", d: "Date Range", r: "Job Title", du: "Duty 1.\nDuty 2."};
+  document.getElementById('expContainer').appendChild(createExpEditor(idx, data));
+  document.getElementById('cvExpContainer').appendChild(createExpPreview(idx, data));
+  bind('inC' + idx, 'cvC' + idx);
+  bind('inD' + idx, 'cvD' + idx);
+  bind('inR' + idx, 'cvR' + idx);
+  bind('inDu' + idx, 'cvDu' + idx, true);
+  if (reshapeMode) setTimeout(initAllDragHandles, 10);
+  setTimeout(addInputControlButtons, 10);
+}
+
+function removeExperience(idx) {
+  const g = document.getElementById('expGroup' + idx);
+  const p = document.getElementById('cvExp' + idx);
+  if (g) g.remove();
+  if (p) p.remove();
+}
+
+defaultExp.forEach(e => addExperience(e));
+
+/* ===== BINDING ===== */
+function bind(id, targetId, isList) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  el.addEventListener('input', () => {
+    if (isList) {
+      const lines = el.value.split('\n').filter(l => l.trim());
+      if (targetId === 'cvSkills') {
+        target.innerHTML = lines.map(l => '<li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">' + l.trim() + '</span></li>').join('');
+        if (reshapeMode) setTimeout(initAllDragHandles, 10);
+      } else {
+        target.innerHTML = lines.map(l => '<li>' + l.trim() + '</li>').join('');
+      }
+    } else {
+      target.textContent = el.value;
+    }
+  });
+}
+
+bind('inName', 'cvName');
+bind('inJob', 'cvJob');
+bind('inPhone', 'cvPhone');
+bind('inEmail', 'cvEmail');
+bind('inAddress', 'cvAddress');
+bind('inAbout', 'cvAbout');
+bind('inSkills', 'cvSkills', true);
+syncSkillsTwoWay();
+bind('inNat', 'cvNat');
+
+/* ===== SKILLS COLUMN TOGGLE ===== */
+const skillsTwoCol = document.getElementById('skillsTwoCol');
+const cvSkills = document.getElementById('cvSkills');
+if (skillsTwoCol && cvSkills) {
+  skillsTwoCol.addEventListener('change', () => {
+    cvSkills.classList.toggle('single-col', !skillsTwoCol.checked);
+  });
+}
+
+document.getElementById('pfpInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('thumb').src = ev.target.result;
+    document.getElementById('cvPfp').src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('cvAbout').addEventListener('input', function() {
+  document.getElementById('inAbout').value = this.textContent;
+});
+
+/* ===== RESHAPE: LEFT/RIGHT COLUMN RESIZE ===== */
+const lrHandle = document.getElementById('lrHandle');
+const cv = document.getElementById('cv');
+let lrDragging = false;
+let lrStartX = 0;
+let lrStartLeftW = 0;
+
+lrHandle.addEventListener('mousedown', (e) => {
+  if (!reshapeMode) return;
+  lrDragging = true;
+  lrStartX = e.clientX;
+  lrStartLeftW = cvLeft.offsetWidth;
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!lrDragging) return;
+  const delta = e.clientX - lrStartX;
+  const containerW = cv.offsetWidth;
+  let newLeftW = lrStartLeftW + delta;
+  const minLeft = containerW * 0.20;
+  const maxLeft = containerW * 0.50;
+  newLeftW = Math.max(minLeft, Math.min(maxLeft, newLeftW));
+  const leftPct = (newLeftW / containerW) * 100;
+  cvLeft.style.width = leftPct + '%';
+  cvRight.style.width = (100 - leftPct) + '%';
+  splitSlider.value = Math.round(leftPct);
+  splitVal.textContent = Math.round(leftPct) + '%';
+});
+
+document.addEventListener('mouseup', () => {
+  if (lrDragging) {
+    lrDragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+});
+
+/* ===== TWO-WAY SKILL SYNC ===== */
+function syncSkillsTwoWay() {
+  const textarea = document.getElementById('inSkills');
+  const list = document.getElementById('cvSkills');
+  if (!textarea || !list) return;
+}
+
+function updateExpPanelOrder() {
+  const container = document.getElementById('expContainer');
+  const previewItems = document.querySelectorAll('#cvExpContainer .cv-exp-item');
+  previewItems.forEach((item, newIdx) => {
+    const idMatch = item.id.match(/cvExp(\d+)/);
+    if (!idMatch) return;
+    const group = document.getElementById('expGroup' + idMatch[1]);
+    if (group) {
+      container.appendChild(group);
+      const title = group.querySelector('h3');
+      if (title) title.textContent = 'Experience ' + (newIdx + 1);
+    }
+  });
+}
+
+function updateEduPanelOrder() {
+  const container = document.getElementById('eduContainer');
+  const previewItems = document.querySelectorAll('#secEdu .cv-edu');
+  previewItems.forEach((item, newIdx) => {
+    const idMatch = item.id.match(/cvEdu(\d+)/);
+    if (!idMatch) return;
+    const group = document.getElementById('eduGroup' + idMatch[1]);
+    if (group) {
+      container.appendChild(group);
+      const title = group.querySelector('h3');
+      if (title) title.textContent = 'Education ' + (newIdx + 1);
+    }
+  });
+}
+
+function updateSkillsTextareaFromPreview() {
+  const list = document.getElementById('cvSkills');
+  const textarea = document.getElementById('inSkills');
+  if (!list || !textarea) return;
+  const texts = [];
+  list.querySelectorAll('.cv-skill-item .cv-skill-text').forEach(span => {
+    texts.push(span.textContent.trim());
+  });
+  textarea.value = texts.join('\n');
+}
+
+function updateLangInputsFromPreview() {
+  const table = document.getElementById('cvLangTable');
+  if (!table) return;
+  const rows = table.querySelectorAll('.cv-lang-item');
+  rows.forEach((row) => {
+    const idx = row.id.replace('cvLang', '');
+    const nameEl = row.querySelector('td:nth-child(2)');
+    const levelEl = row.querySelector('td:nth-child(3)');
+    if (nameEl && levelEl) {
+      const input = document.getElementById('inL' + idx);
+      if (input) input.value = nameEl.textContent.trim() + ': ' + levelEl.textContent.trim();
+    }
+  });
+}
+
+/* ===== UNIVERSAL DRAG SYSTEM ===== */
+let draggedEl = null;
+let dragType = null;
+let dropIndicator = null;
+
+function initAllDragHandles() {
+  document.querySelectorAll('.handle-move').forEach(handle => {
+    const newHandle = handle.cloneNode(true);
+    handle.parentNode.replaceChild(newHandle, handle);
+    newHandle.addEventListener('mousedown', startDrag);
+    newHandle.addEventListener('touchstart', startDrag, {passive: false});
+  });
+}
+
+const origToggleReshape = toggleReshape;
+toggleReshape = function() {
+  origToggleReshape();
+  if (reshapeMode) initAllDragHandles();
+};
+
+function startDrag(e) {
+  if (!reshapeMode) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const handle = e.currentTarget;
+  draggedEl = handle.closest('.cv-section, .cv-exp-item, .cv-contact-item, .cv-skill-item, .cv-lang-item, .cv-edu');
+  if (!draggedEl) return;
+  if (draggedEl.classList.contains('cv-section')) dragType = 'section';
+  else if (draggedEl.classList.contains('cv-exp-item')) dragType = 'experience';
+  else if (draggedEl.classList.contains('cv-contact-item')) dragType = 'contact';
+  else if (draggedEl.classList.contains('cv-skill-item')) dragType = 'skill';
+  else if (draggedEl.classList.contains('cv-lang-item')) dragType = 'lang';
+  else if (draggedEl.classList.contains('cv-edu')) dragType = 'education';
+  else return;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  draggedEl.classList.add('dragging-section');
+  document.body.style.cursor = 'grabbing';
+  document.body.style.userSelect = 'none';
+  if (dragType === 'lang') {
+    dropIndicator = document.createElement('tr');
+    dropIndicator.className = 'drop-indicator';
+    dropIndicator.innerHTML = '<td colspan="3" style="padding:0;height:3px;"><div style="height:3px;background:#e94560;border-radius:2px;margin:4px 0;pointer-events:none;"></div></td>';
+  } else {
+    dropIndicator = document.createElement('div');
+    dropIndicator.className = 'drop-indicator';
+  }
+  dropIndicator.style.display = 'none';
+}
+
+function onDragMove(e) {
+  if (!draggedEl || !dragType) return;
+  e.preventDefault();
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  let candidates;
+  if (dragType === 'section') candidates = Array.from(cvLeft.querySelectorAll('.cv-section'));
+  else if (dragType === 'experience') candidates = Array.from(document.getElementById('cvExpContainer').querySelectorAll('.cv-exp-item'));
+  else if (dragType === 'contact') candidates = Array.from(document.getElementById('cvContacts').querySelectorAll('.cv-contact-item'));
+  else if (dragType === 'skill') candidates = Array.from(document.getElementById('cvSkills').querySelectorAll('.cv-skill-item'));
+  else if (dragType === 'lang') candidates = Array.from(document.getElementById('cvLangTable').querySelectorAll('.cv-lang-item'));
+  else if (dragType === 'education') candidates = Array.from(document.getElementById('secEdu').querySelectorAll('.cv-edu'));
+  let bestTarget = null, bestPos = null, bestScore = Infinity;
+  candidates.forEach(item => {
+    if (item === draggedEl) return;
+    const r = item.getBoundingClientRect();
+    const mid = r.top + r.height / 2;
+    const dist = Math.abs(clientY - mid);
+    if (dist < bestScore) {
+      bestScore = dist;
+      bestTarget = item;
+      bestPos = clientY < mid ? 'before' : 'after';
+    }
+  });
+  if (dropIndicator.parentNode) dropIndicator.remove();
+  if (bestTarget && bestTarget !== draggedEl) {
+    if (bestPos === 'before') bestTarget.parentNode.insertBefore(dropIndicator, bestTarget);
+    else bestTarget.parentNode.insertBefore(dropIndicator, bestTarget.nextSibling);
+    dropIndicator.style.display = 'block';
+  }
+}
+
+function onDragEnd(e) {
+  if (!draggedEl) return;
+  if (dropIndicator && dropIndicator.parentNode) {
+    dropIndicator.parentNode.insertBefore(draggedEl, dropIndicator);
+    dropIndicator.remove();
+  }
+  if (dragType === 'skill') updateSkillsTextareaFromPreview();
+  if (dragType === 'lang') updateLangInputsFromPreview();
+  if (dragType === 'experience') updateExpPanelOrder();
+  if (dragType === 'education') updateEduPanelOrder();
+  draggedEl.classList.remove('dragging-section');
+  draggedEl = null; dragType = null; dropIndicator = null;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
+
+document.addEventListener('mousemove', onDragMove);
+document.addEventListener('mouseup', onDragEnd);
+document.addEventListener('touchmove', onDragMove, {passive: false});
+document.addEventListener('touchend', onDragEnd);
+initAllDragHandles();
+
+/* ===== ADD INPUT CONTROL BUTTONS TO ALL FIELDS ===== */
+function addInputControlButtons() {
+  document.querySelectorAll('.field input:not([type="file"]):not([type="color"]), .field textarea').forEach(el => {
+    if (el.dataset.icBtn === '1') return;
+    el.dataset.icBtn = '1';
+
+    const field = el.closest('.field');
+    if (!field) return;
+    const label = field.querySelector('label');
+    if (field.querySelector('.input-ctrl-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'input-ctrl-btn';
+    btn.textContent = 'Aa';
+    btn.title = 'Input Control';
+    btn.type = 'button';
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const inputId = el.id;
+      let targetId = null;
+      let labelText = label ? label.childNodes[0].textContent.trim() : '';
+
+      const map = {
+        'inName': ['cvName'],
+        'inJob': ['cvJob'],
+        'inPhone': ['cvContactPhone'],
+        'inEmail': ['cvContactEmail'],
+        'inAddress': ['cvContactAddress'],
+        'inAbout': ['cvAbout'],
+        'inNat': ['cvNat'],
+      };
+
+      if (map[inputId]) {
+        targetId = map[inputId];
+      } else if (inputId.startsWith('inL') && /^inL\d+$/.test(inputId)) {
+        targetId = [inputId.replace('inL', 'cvLang')];
+        labelText = 'Language';
+      } else if (inputId.startsWith('inEduYear')) {
+        targetId = [inputId.replace('inEduYear', 'cvEduYear')];
+        labelText = 'Year';
+      } else if (inputId.startsWith('inEduSchool')) {
+        targetId = [inputId.replace('inEduSchool', 'cvEduSchool')];
+        labelText = 'School';
+      } else if (inputId.startsWith('inEduMajor')) {
+        targetId = [inputId.replace('inEduMajor', 'cvEduMajor')];
+        labelText = 'Major';
+      } else if (inputId.startsWith('inC')) {
+        targetId = [inputId.replace('inC', 'cvC')];
+        labelText = 'Company';
+      } else if (inputId.startsWith('inD')) {
+        targetId = [inputId.replace('inD', 'cvD')];
+        labelText = 'Date';
+      } else if (inputId.startsWith('inR')) {
+        targetId = [inputId.replace('inR', 'cvR')];
+        labelText = 'Role';
+      } else if (inputId.startsWith('inDu')) {
+        targetId = [inputId.replace('inDu', 'cvDu')];
+        labelText = 'Duties';
+      } else if (inputId === 'inSkills') {
+        targetId = 'cvSkills';
+        labelText = 'Skills';
+      }
+
+      if (targetId) openInputControl(targetId, labelText, field);
+    };
+    field.appendChild(btn);
+  });
+}
+addInputControlButtons();
+
+function getResumeCSS() {
+  return 'body{margin:0;background:#fff;}' +
+    '.cv-container{width:210mm;min-height:297mm;background:#fff;display:flex;box-shadow:none;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:var(--theme-text);line-height:1.5;font-size:12px;--theme-title:#000000;--theme-subtitle:#333333;--theme-text:#222222;--theme-line:#000000;--theme-split:#000000;}' +
+    '.cv-left{width:35%;background:#f0f0f0 !important;padding:30px 20px;border-right:2px solid var(--theme-split);flex-shrink:0;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}' +
+    '.cv-profile{text-align:center;margin-bottom:18px;}' +
+    '.cv-pfp{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--theme-split);margin-bottom:10px;}' +
+    '.cv-section{margin-bottom:18px;}' +
+    '.cv-section-title{font-size:13px;font-weight:800;color:var(--theme-title);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--theme-line);}' +
+    '.cv-about{font-size:11px;color:var(--theme-text);text-align:left;line-height:1.55;}' +
+    '.cv-skills{list-style:none;font-size:11px;color:var(--theme-text);column-count:2;column-gap:8px;padding:0;}.cv-skills.single-col{column-count:1;}' +
+    '.cv-skills li{padding:2px 0 2px 10px;position:relative;break-inside:avoid;}' +
+    '.cv-skills li::before{content:"•";position:absolute;left:0;color:var(--theme-title);}' +
+    '.cv-info{font-size:11px;color:var(--theme-text);font-weight:600;}' +
+    '.cv-edu{margin-bottom:8px;position:relative;}' +
+    '.cv-edu-year{font-size:10px;color:var(--theme-subtitle);font-weight:700;}' +
+    '.cv-edu-school{font-size:11px;font-weight:700;color:var(--theme-title);}' +
+    '.cv-edu-major{font-size:10px;color:var(--theme-subtitle);}' +
+    '.cv-lang{width:100%;font-size:11px;}' +
+    '.cv-lang td{padding:2px 0;color:var(--theme-text);}' +
+    '.cv-lang-level{color:var(--theme-subtitle);font-style:italic;font-weight:600;}' +
+    '.cv-right{width:65%;padding:32px 28px;flex:1;}' +
+    '.cv-header{margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--theme-line);}' +
+    '.cv-name{font-size:28px;font-weight:900;color:var(--theme-title);letter-spacing:0.5px;margin-bottom:2px;}' +
+    '.cv-job{font-size:13px;color:var(--theme-subtitle);font-weight:700;margin-bottom:8px;}' +
+    '.cv-contacts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:11px;color:var(--theme-text);}' +
+    '.cv-contact-label{font-weight:800;color:var(--theme-title);}' +
+    '.cv-exp-title{font-size:14px;font-weight:800;color:var(--theme-title);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid var(--theme-line);}' +
+    '.cv-exp-item{margin-bottom:12px;padding-bottom:12px;page-break-inside:avoid;}' +
+    '.cv-exp-item:not(:last-child){border-bottom:1px solid var(--theme-line);}' +
+    '.cv-exp-header{margin-bottom:2px;}' +
+    '.cv-exp-company{font-size:12px;font-weight:800;color:var(--theme-title);text-transform:capitalize;}' +
+    '.cv-exp-date{font-size:10px;color:var(--theme-subtitle);font-weight:700;margin-left:6px;}' +
+    '.cv-exp-role{font-size:11px;font-weight:800;color:var(--theme-subtitle);margin-bottom:3px;text-transform:capitalize;}' +
+    '.cv-duties{list-style:none;font-size:10.5px;color:var(--theme-text);line-height:1.5;padding:0;margin:0;}' +
+    '.cv-duties li{padding-left:12px;position:relative;margin-bottom:2px;}' +
+    '.cv-duties li::before{content:"•";position:absolute;left:0;color:var(--theme-title);font-weight:bold;}' +
+    '@media print{body{background:#fff !important;}.cv-container{box-shadow:none !important;margin:0 !important;width:100% !important;min-height:auto !important;}.cv-left{background:#f0f0f0 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}}';
+}
+
+function printResume() {
+  const cvClone = document.getElementById('cv').cloneNode(true);
+  cvClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  cvClone.querySelectorAll('.reshape-handle, .handle-move').forEach(el => el.remove());
+  cvClone.querySelectorAll('.cv-contact-item').forEach(el => el.classList.remove('cv-contact-item'));
+  cvClone.querySelectorAll('.cv-skill-item').forEach(el => { el.classList.remove('cv-skill-item'); el.style.paddingLeft = ''; });
+  cvClone.querySelectorAll('.cv-lang-item').forEach(el => el.classList.remove('cv-lang-item'));
+  cvClone.querySelectorAll('.cv-lang-item td:first-child').forEach(el => el.style.display = 'none');
+  const w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>Resume</title><style>' + getResumeCSS() + '</style></head><body>' + cvClone.outerHTML + '</body></html>');
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 300);
+}
+
+function downloadResume() {
+  const cvClone = document.getElementById('cv').cloneNode(true);
+  cvClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  cvClone.querySelectorAll('.reshape-handle, .handle-move').forEach(el => el.remove());
+  cvClone.querySelectorAll('.cv-contact-item').forEach(el => el.classList.remove('cv-contact-item'));
+  cvClone.querySelectorAll('.cv-skill-item').forEach(el => { el.classList.remove('cv-skill-item'); el.style.paddingLeft = ''; });
+  cvClone.querySelectorAll('.cv-lang-item').forEach(el => el.classList.remove('cv-lang-item'));
+  cvClone.querySelectorAll('.cv-lang-item td:first-child').forEach(el => el.style.display = 'none');
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resume</title><style>' + getResumeCSS() + '</style></head><body>' + cvClone.outerHTML + '</body></html>';
+  const blob = new Blob([html], {type: 'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resume.html';
+  a.click();
+}
+
+/* ===== SAVE / LOAD STATE ===== */
+const SAVE_KEY = 'resumeEditorState';
+
+function gatherState() {
+  const experiences = [];
+  for (let i = 0; i < expCount; i++) {
+    const c = document.getElementById('inC' + i);
+    const d = document.getElementById('inD' + i);
+    const r = document.getElementById('inR' + i);
+    const du = document.getElementById('inDu' + i);
+    if (c) experiences.push({c: c.value, d: d.value, r: r.value, du: du.value});
+  }
+
+  const languages = [];
+  document.querySelectorAll('#langContainer > .group').forEach(g => {
+    const idx = g.id.replace('langGroup', '');
+    const input = document.getElementById('inL' + idx);
+    if (input) languages.push(input.value);
+  });
+
+  const education = [];
+  document.querySelectorAll('#eduContainer > .group').forEach(g => {
+    const idx = g.id.replace('eduGroup', '');
+    const year = document.getElementById('inEduYear' + idx);
+    const school = document.getElementById('inEduSchool' + idx);
+    const major = document.getElementById('inEduMajor' + idx);
+    if (year) education.push({year: year.value, school: school.value, major: major.value});
+  });
+
+  const fontSizes = {};
+  ['cvName','cvJob','cvPhone','cvEmail','cvAddress','cvAbout','cvNat','cvSkills'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.style.fontSize) fontSizes[id] = el.style.fontSize;
+  });
+  for (let i = 0; i < expCount; i++) {
+    ['cvC','cvD','cvR','cvDu'].forEach(p => {
+      const el = document.getElementById(p + i);
+      if (el && el.style.fontSize) fontSizes[p + i] = el.style.fontSize;
+    });
+  }
+
+  return {
+    name: document.getElementById('inName').value,
+    job: document.getElementById('inJob').value,
+    phone: document.getElementById('inPhone').value,
+    email: document.getElementById('inEmail').value,
+    address: document.getElementById('inAddress').value,
+    about: document.getElementById('inAbout').value,
+    skills: document.getElementById('inSkills').value,
+    skillsTwoCol: document.getElementById('skillsTwoCol').checked,
+    nationality: document.getElementById('inNat').value,
+    languages: languages,
+    education: education,
+    leftColor: document.getElementById('colorLeft').value,
+    rightColor: document.getElementById('colorRight').value,
+    themeTitle: document.getElementById('themeTitle').value,
+    themeSubtitle: document.getElementById('themeSubtitle').value,
+    themeText: document.getElementById('themeText').value,
+    themeLine: document.getElementById('themeLine').value,
+    themeSplit: document.getElementById('themeSplit').value,
+    themePfp: document.getElementById('themePfp').value,
+    split: document.getElementById('splitSlider').value,
+    photoSize: document.getElementById('photoSizeSlider').value,
+    photoSrc: document.getElementById('cvPfp').src,
+    expTitleSize: document.getElementById('expTitleSlider').value,
+    experiences: experiences,
+    skillOrder: Array.from(document.querySelectorAll('#cvSkills .cv-skill-item .cv-skill-text')).map(el => el.textContent.trim()),
+    langOrder: Array.from(document.querySelectorAll('#cvLangTable .cv-lang-item')).map(el => {
+      const name = el.querySelector('td:nth-child(2)');
+      const level = el.querySelector('td:nth-child(3)');
+      return name && level ? name.textContent.trim() + ': ' + level.textContent.trim() : '';
+    }),
+    fontSizes: fontSizes
+  };
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(gatherState()));
+    const btn = document.getElementById('saveBtn');
+    const oldText = btn.textContent;
+    btn.textContent = 'Saved!';
+    btn.classList.add('btn-saved');
+    setTimeout(() => { btn.textContent = oldText; btn.classList.remove('btn-saved'); }, 1500);
+  } catch (e) {
+    alert('Could not save: ' + e.message);
+  }
+}
+
+function loadState() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  let s;
+  try { s = JSON.parse(raw); } catch(e) { return; }
+
+  if (s.name !== undefined) document.getElementById('inName').value = s.name;
+  if (s.job !== undefined) document.getElementById('inJob').value = s.job;
+  if (s.phone !== undefined) document.getElementById('inPhone').value = s.phone;
+  if (s.email !== undefined) document.getElementById('inEmail').value = s.email;
+  if (s.address !== undefined) document.getElementById('inAddress').value = s.address;
+  if (s.about !== undefined) document.getElementById('inAbout').value = s.about;
+  if (s.skills !== undefined) document.getElementById('inSkills').value = s.skills;
+  if (s.skillsTwoCol !== undefined) document.getElementById('skillsTwoCol').checked = s.skillsTwoCol;
+  if (s.nationality !== undefined) document.getElementById('inNat').value = s.nationality;
+  if (s.leftColor !== undefined) document.getElementById('colorLeft').value = s.leftColor;
+  if (s.rightColor !== undefined) document.getElementById('colorRight').value = s.rightColor;
+  if (s.split !== undefined) document.getElementById('splitSlider').value = s.split;
+  if (s.photoSize !== undefined) document.getElementById('photoSizeSlider').value = s.photoSize;
+
+  if (s.leftColor !== undefined) {
+    appliedLeftColor = s.leftColor;
+    cvLeft.style.setProperty('background', s.leftColor, 'important');
+  }
+  if (s.rightColor !== undefined) {
+    appliedRightColor = s.rightColor;
+    cvRight.style.setProperty('background', s.rightColor, 'important');
+  }
+  if (s.themeTitle !== undefined) {
+    document.getElementById('themeTitle').value = s.themeTitle;
+    appliedThemeTitle = s.themeTitle;
+    setThemeVar('--theme-title', s.themeTitle);
+  }
+  if (s.themeSubtitle !== undefined) {
+    document.getElementById('themeSubtitle').value = s.themeSubtitle;
+    appliedThemeSubtitle = s.themeSubtitle;
+    setThemeVar('--theme-subtitle', s.themeSubtitle);
+  }
+  if (s.themeText !== undefined) {
+    document.getElementById('themeText').value = s.themeText;
+    appliedThemeText = s.themeText;
+    setThemeVar('--theme-text', s.themeText);
+  }
+  if (s.themeLine !== undefined) {
+    document.getElementById('themeLine').value = s.themeLine;
+    appliedThemeLine = s.themeLine;
+    setThemeVar('--theme-line', s.themeLine);
+  }
+  if (s.themeSplit !== undefined) {
+    document.getElementById('themeSplit').value = s.themeSplit;
+    appliedThemeSplit = s.themeSplit;
+    setThemeVar('--theme-split', s.themeSplit);
+  }
+  if (s.themePfp !== undefined) {
+    document.getElementById('themePfp').value = s.themePfp;
+    appliedThemePfp = s.themePfp;
+    setThemeVar('--theme-pfp', s.themePfp);
+  }
+  if (s.split !== undefined) {
+    splitVal.textContent = s.split + '%';
+    cvLeft.style.width = s.split + '%';
+    cvRight.style.width = (100 - s.split) + '%';
+  }
+  if (s.photoSize !== undefined) {
+    photoSizeVal.textContent = s.photoSize + 'px';
+    cvPfpImg.style.width = s.photoSize + 'px';
+    cvPfpImg.style.height = s.photoSize + 'px';
+  }
+  if (s.photoSrc !== undefined) {
+    document.getElementById('thumb').src = s.photoSrc;
+    document.getElementById('cvPfp').src = s.photoSrc;
+  }
+  if (s.skillsTwoCol !== undefined) {
+    cvSkills.classList.toggle('single-col', !s.skillsTwoCol);
+  }
+
+  document.getElementById('expContainer').innerHTML = '';
+  document.getElementById('cvExpContainer').innerHTML = '';
+  expCount = 0;
+  if (Array.isArray(s.experiences) && s.experiences.length > 0) {
+    s.experiences.forEach(e => addExperience(e));
+  } else {
+    defaultExp.forEach(e => addExperience(e));
+  }
+
+  document.getElementById('langContainer').innerHTML = '';
+  document.getElementById('cvLangTable').innerHTML = '';
+  langCount = 0;
+  if (Array.isArray(s.languages) && s.languages.length > 0) {
+    s.languages.forEach(l => addLanguage(l));
+  } else {
+    defaultLangs.forEach(l => addLanguage(l));
+  }
+
+  document.getElementById('eduContainer').innerHTML = '';
+  document.querySelectorAll('#secEdu .cv-edu').forEach(el => el.remove());
+  eduCount = 0;
+  if (Array.isArray(s.education) && s.education.length > 0) {
+    s.education.forEach(e => addEducation(e));
+  } else {
+    defaultEdu.forEach(e => addEducation(e));
+  }
+
+  ['inName','inJob','inPhone','inEmail','inAddress','inAbout','inNat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dispatchEvent(new Event('input'));
+  });
+  document.getElementById('inSkills').dispatchEvent(new Event('input'));
+  document.getElementById('inAbout').dispatchEvent(new Event('input'));
+
+  if (s.expTitleSize !== undefined) {
+    document.getElementById('expTitleSlider').value = s.expTitleSize;
+    document.getElementById('expTitleVal').textContent = s.expTitleSize + 'px';
+    const title = document.querySelector('.cv-exp-title');
+    if (title) title.style.fontSize = s.expTitleSize + 'px';
+  }
+  if (s.skillOrder && s.skillOrder.length > 0) {
+    const skillsList = document.getElementById('cvSkills');
+    const currentItems = Array.from(skillsList.querySelectorAll('.cv-skill-item'));
+    s.skillOrder.forEach(text => {
+      const item = currentItems.find(li => li.querySelector('.cv-skill-text').textContent.trim() === text);
+      if (item) skillsList.appendChild(item);
+    });
+    updateSkillsTextareaFromPreview();
+  }
+  if (s.langOrder && s.langOrder.length > 0) {
+    const langTable = document.getElementById('cvLangTable');
+    const currentRows = Array.from(langTable.querySelectorAll('.cv-lang-item'));
+    s.langOrder.forEach(text => {
+      const row = currentRows.find(tr => {
+        const name = tr.querySelector('td:nth-child(2)');
+        const level = tr.querySelector('td:nth-child(3)');
+        return name && level && (name.textContent.trim() + ': ' + level.textContent.trim()) === text;
+      });
+      if (row) langTable.appendChild(row);
+    });
+    updateLangInputsFromPreview();
+  }
+  if (s.fontSizes) {
+    Object.entries(s.fontSizes).forEach(([id, size]) => {
+      const el = document.getElementById(id);
+      if (el) el.style.fontSize = size;
+    });
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  saveState();
+});
+
+/* ===== EXPERIENCE TITLE SIZE SLIDER ===== */
+const expTitleSlider = document.getElementById('expTitleSlider');
+const expTitleVal = document.getElementById('expTitleVal');
+const DEFAULT_EXP_TITLE_SIZE = 14;
+
+expTitleSlider.addEventListener('input', () => {
+  const v = expTitleSlider.value;
+  expTitleVal.textContent = v + 'px';
+  const title = document.querySelector('.cv-exp-title');
+  if (title) title.style.fontSize = v + 'px';
+});
+
+function resetExpTitleSize() {
+  expTitleSlider.value = DEFAULT_EXP_TITLE_SIZE;
+  expTitleVal.textContent = DEFAULT_EXP_TITLE_SIZE + 'px';
+  const title = document.querySelector('.cv-exp-title');
+  if (title) title.style.fontSize = '';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  if (langCount === 0) defaultLangs.forEach(l => addLanguage(l));
+  if (eduCount === 0) defaultEdu.forEach(e => addEducation(e));
+});
+
+/* ===== SAVE AS FILE / LOAD FROM FILE ===== */
+function saveAsFile() {
+  const state = gatherState();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resume-state.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadFromFile() {
+  document.getElementById('loadFileInput').click();
+}
+
+function handleFileLoad(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const state = JSON.parse(e.target.result);
+      if (!state || typeof state !== 'object') throw new Error('Invalid file');
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      loadState();
+      alert('Resume state loaded successfully!');
+    } catch (err) {
+      alert('Failed to load file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ===== CLEAR SESSION ===== */
+function clearSession() {
+  if (!confirm('Are you sure you want to clear the current session?\nAll unsaved data will be lost.')) return;
+  localStorage.removeItem(SAVE_KEY);
+
+  document.getElementById('inName').value = 'TEST NAME HERE';
+  document.getElementById('inJob').value = 'Customer Service';
+  document.getElementById('inPhone').value = '050-000-0000';
+  document.getElementById('inEmail').value = 'test.email@example.com';
+  document.getElementById('inAddress').value = 'JVC, Dubai';
+  document.getElementById('inAbout').value = 'Customer-focused with experience in cashier operations, customer service, as well as hosting also order handling, and inventory support. Skilled in processing transactions accurately, assisting customers, maintaining smooth daily operations, and working effectively in fast-paced environments. Eager to develop skills and contribute to a successful team.';
+  document.getElementById('inSkills').value = 'Flexible and adaptable\nCulture awareness\nFast learning\nOrganized\nTime management\nCommunication and presentation skills\nPOS system\nCritical system\nData analysis\nTeam work\nDetail-Oriented & Documentation';
+  document.getElementById('skillsTwoCol').checked = true;
+  document.getElementById('inNat').value = 'Egyptian';
+
+  resetColorLeft();
+  resetColorRight();
+  resetThemeTitle();
+  resetThemeSubtitle();
+  resetThemeText();
+  resetThemeLine();
+  resetThemeSplit();
+  resetSplit();
+  resetPhotoSize();
+  resetExpTitleSize();
+
+  document.getElementById('thumb').src = 'https://via.placeholder.com/110x110/333/fff?text=Photo';
+  document.getElementById('cvPfp').src = 'https://via.placeholder.com/110x110/333/fff?text=Photo';
+
+  cvSkills.classList.remove('single-col');
+
+  document.getElementById('expContainer').innerHTML = '';
+  document.getElementById('cvExpContainer').innerHTML = '';
+  expCount = 0;
+  defaultExp.forEach(e => addExperience(e));
+
+  document.getElementById('langContainer').innerHTML = '';
+  document.getElementById('cvLangTable').innerHTML = '';
+  langCount = 0;
+  defaultLangs.forEach(l => addLanguage(l));
+
+  document.getElementById('eduContainer').innerHTML = '';
+  document.querySelectorAll('#secEdu .cv-edu').forEach(el => el.remove());
+  eduCount = 0;
+  defaultEdu.forEach(e => addEducation(e));
+
+  ['inName','inJob','inPhone','inEmail','inAddress','inAbout','inNat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dispatchEvent(new Event('input'));
+  });
+  document.getElementById('inSkills').dispatchEvent(new Event('input'));
+  document.getElementById('inAbout').dispatchEvent(new Event('input'));
+
+  const contacts = document.getElementById('cvContacts');
+  const phone = document.getElementById('cvContactPhone');
+  const email = document.getElementById('cvContactEmail');
+  const address = document.getElementById('cvContactAddress');
+  if (phone && email && address) {
+    contacts.appendChild(phone);
+    contacts.appendChild(email);
+    contacts.appendChild(address);
+  }
+
+  const skillsTextarea = document.getElementById('inSkills');
+  const skillsList = document.getElementById('cvSkills');
+  if (skillsTextarea && skillsList) {
+    const lines = skillsTextarea.value.split('\n').filter(l => l.trim());
+    skillsList.innerHTML = lines.map(l => '<li class="cv-skill-item" draggable="false"><div class="handle-move" title="Drag to reorder skill">⋮⋮</div><span class="cv-skill-text">' + l.trim() + '</span></li>').join('');
+  }
+
+  document.querySelectorAll('[style*="font-size"]').forEach(el => {
+    el.style.fontSize = '';
+  });
+}
+
+/* ===== GROUP TITLE INPUT CONTROL ===== */
+const groupTitleMap = {
+  'Header': { target: 'cvName', label: 'Name' },
+  'About me': { target: 'secAbout', label: 'About Me Title', selector: '.cv-section-title' },
+  'Skills': { target: 'secSkills', label: 'Skills Title', selector: '.cv-section-title' },
+  'Nationality': { target: 'secNat', label: 'Nationality Title', selector: '.cv-section-title' },
+  'Education': { target: 'secEdu', label: 'Education Title', selector: '.cv-section-title' },
+  'Languages': { target: 'secLang', label: 'Languages Title', selector: '.cv-section-title' },
+};
+
+function addGroupTitleControls() {
+  const groupResizeMap = {
+    'Header': [
+      { 
+        getElements: () => [document.getElementById('cvName'), document.getElementById('cvJob')], 
+        label: 'Name & Job', 
+        right: '52px' 
+      },
+      { 
+        getElements: () => [
+          document.getElementById('cvContactPhone'), 
+          document.getElementById('cvContactEmail'), 
+          document.getElementById('cvContactAddress')
+        ], 
+        label: 'Contacts', 
+        right: '26px' 
+      }
+    ],
+    'About me': { 
+      getElements: () => [
+        document.querySelector('#secAbout .cv-section-title'),
+        document.getElementById('cvAbout')
+      ], 
+      label: 'About Me' 
+    },
+    'Skills': { 
+      getElements: () => [
+        document.querySelector('#secSkills .cv-section-title'),
+        document.getElementById('cvSkills')
+      ], 
+      label: 'Skills' 
+    },
+    'Nationality': { 
+      getElements: () => [
+        document.querySelector('#secNat .cv-section-title'),
+        document.getElementById('cvNat')
+      ], 
+      label: 'Nationality' 
+    },
+    'Education': { 
+      getElements: () => {
+        const els = [document.querySelector('#secEdu .cv-section-title')];
+        document.querySelectorAll('#secEdu .cv-edu').forEach(item => {
+          const idx = item.id.replace('cvEdu', '');
+          ['cvEduYear', 'cvEduSchool', 'cvEduMajor'].forEach(p => {
+            const el = document.getElementById(p + idx);
+            if (el) els.push(el);
+          });
+        });
+        return els;
+      }, 
+      label: 'All Education' 
+    },
+    'Languages': { 
+      getElements: () => {
+        const els = [document.querySelector('#secLang .cv-section-title')];
+        document.querySelectorAll('#cvLangTable .cv-lang-item').forEach(item => {
+          const idx = item.id.replace('cvLang', '');
+          ['cvL' + idx + 'n', 'cvL' + idx + 'l'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) els.push(el);
+          });
+        });
+        return els;
+      }, 
+      label: 'All Languages' 
+    },
+    'Experience Title': { 
+      getElements: () => {
+        const els = [document.querySelector('.cv-exp-title')];
+        document.querySelectorAll('#cvExpContainer .cv-exp-item').forEach(item => {
+          const idx = item.id.replace('cvExp', '');
+          ['cvC', 'cvD', 'cvR', 'cvDu'].forEach(p => {
+            const el = document.getElementById(p + idx);
+            if (el) els.push(el);
+          });
+        });
+        return els;
+      }, 
+      label: 'All Experience' 
+    },
+  };
+
+  document.querySelectorAll('.group > h3').forEach(h3 => {
+    const titleText = h3.childNodes[0].textContent.trim();
+
+    // Existing Aa button for section title — SKIP for Header
+    if (titleText !== 'Header' && groupTitleMap[titleText] && !h3.querySelector('.group-title-ctrl')) {
+      const btn = document.createElement('button');
+      btn.className = 'group-title-ctrl';
+      btn.textContent = 'Aa';
+      btn.title = 'Input Control';
+      btn.type = 'button';
+      btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const map = groupTitleMap[titleText];
+        let targetEl;
+        if (map.selector) {
+          targetEl = document.querySelector('#' + map.target + ' ' + map.selector);
+        } else {
+          targetEl = document.getElementById(map.target);
+        }
+        if (targetEl) {
+          if (!targetEl.id) targetEl.id = 'gtCtrl_' + map.target;
+          openInputControl([targetEl.id], map.label, h3);
+        }
+      };
+      h3.appendChild(btn);
+    }
+
+    // Group resize button(s)
+    const resizeConfig = groupResizeMap[titleText];
+    if (resizeConfig) {
+      if (Array.isArray(resizeConfig)) {
+        resizeConfig.forEach((cfg, i) => {
+          if (h3.querySelector('.group-resize-btn[data-resize-idx="' + i + '"]')) return;
+          const btn = document.createElement('button');
+          btn.className = 'group-resize-btn';
+          btn.textContent = '↔';
+          btn.title = 'Resize: ' + cfg.label;
+          btn.type = 'button';
+          btn.dataset.resizeIdx = i;
+          if (cfg.right) btn.style.right = cfg.right;
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openGroupResize(cfg.getElements, cfg.label, h3);
+          };
+          h3.appendChild(btn);
+        });
+      } else {
+        if (h3.querySelector('.group-resize-btn')) return;
+        const btn = document.createElement('button');
+        btn.className = 'group-resize-btn';
+        btn.textContent = '↔';
+        btn.title = 'Resize: ' + resizeConfig.label;
+        btn.type = 'button';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openGroupResize(resizeConfig.getElements, resizeConfig.label, h3);
+        };
+        h3.appendChild(btn);
+      }
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(addGroupTitleControls, 100);
+});
+</script>
+</body>
+</html>
