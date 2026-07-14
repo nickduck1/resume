@@ -611,6 +611,7 @@ body {
 <base target="_blank">
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -862,7 +863,7 @@ Detail-Oriented & Documentation</textarea></div>
           </div>
         </div>
         <div>
-          <div class="cv-exp-title">Experience</div>
+          <div class="cv-exp-title" id="cvExpTitle">Experience</div>
           <div id="cvExpContainer"></div>
         </div>
       </div>
@@ -1738,42 +1739,55 @@ function addInputControlButtons() {
 addInputControlButtons();
 
 function getResumeCSS() {
+  const leftBg = cvLeft.style.background || appliedLeftColor || '#f0f0f0';
+  const rightBg = cvRight.style.background || appliedRightColor || '#ffffff';
+  const titleColor = appliedThemeTitle || '#000000';
+  const subtitleColor = appliedThemeSubtitle || '#333333';
+  const textColor = appliedThemeText || '#222222';
+  const lineColor = appliedThemeLine || '#000000';
+  const splitColor = appliedThemeSplit || '#cccccc';
+  const pfpColor = appliedThemePfp || '#bbbbbb';
+  const leftW = cvLeft.style.width || '35%';
+  const rightW = cvRight.style.width || '65%';
+  const pfpSize = cvPfpImg.style.width || '110px';
+  const expTitleSize = document.querySelector('.cv-exp-title')?.style.fontSize || '14px';
+
   return 'body{margin:0;background:#fff;}' +
-    '.cv-container{width:210mm;min-height:297mm;background:#fff;display:flex;box-shadow:none;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:var(--theme-text);line-height:1.5;font-size:12px;--theme-title:#000000;--theme-subtitle:#333333;--theme-text:#222222;--theme-line:#000000;--theme-split:#000000;}' +
-    '.cv-left{width:35%;background:#f0f0f0 !important;padding:30px 20px;border-right:2px solid var(--theme-split);flex-shrink:0;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}' +
+    '.cv-container{width:210mm;min-height:297mm;background:#fff;display:flex;box-shadow:none;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:' + textColor + ';line-height:1.5;font-size:12px;--theme-title:' + titleColor + ';--theme-subtitle:' + subtitleColor + ';--theme-text:' + textColor + ';--theme-line:' + lineColor + ';--theme-split:' + splitColor + ';--theme-pfp:' + pfpColor + ';}' +
+    '.cv-left{width:' + leftW + ';background:' + leftBg + ' !important;padding:30px 20px;border-right:2px solid ' + splitColor + ';flex-shrink:0;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}' +
+    '.cv-right{width:' + rightW + ';background:' + rightBg + ' !important;padding:32px 28px;flex:1;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}' +
     '.cv-profile{text-align:center;margin-bottom:18px;}' +
-    '.cv-pfp{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--theme-split);margin-bottom:10px;}' +
+    '.cv-pfp{width:' + pfpSize + ';height:' + pfpSize + ';border-radius:50%;object-fit:cover;border:3px solid ' + pfpColor + ';margin-bottom:10px;}' +
     '.cv-section{margin-bottom:18px;}' +
-    '.cv-section-title{font-size:13px;font-weight:800;color:var(--theme-title);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--theme-line);}' +
-    '.cv-about{font-size:11px;color:var(--theme-text);text-align:left;line-height:1.55;}' +
-    '.cv-skills{list-style:none;font-size:11px;color:var(--theme-text);column-count:2;column-gap:8px;padding:0;}.cv-skills.single-col{column-count:1;}' +
+    '.cv-section-title{font-size:13px;font-weight:800;color:' + titleColor + ';text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid ' + lineColor + ';}' +
+    '.cv-about{font-size:11px;color:' + textColor + ';text-align:left;line-height:1.55;}' +
+    '.cv-skills{list-style:none;font-size:11px;color:' + textColor + ';column-count:2;column-gap:8px;padding:0;}.cv-skills.single-col{column-count:1;}' +
     '.cv-skills li{padding:2px 0 2px 10px;position:relative;break-inside:avoid;}' +
-    '.cv-skills li::before{content:"•";position:absolute;left:0;color:var(--theme-title);}' +
-    '.cv-info{font-size:11px;color:var(--theme-text);font-weight:600;}' +
+    '.cv-skills li::before{content:"•";position:absolute;left:0;color:' + titleColor + ';}' +
+    '.cv-info{font-size:11px;color:' + textColor + ';font-weight:600;}' +
     '.cv-edu{margin-bottom:8px;position:relative;}' +
-    '.cv-edu-year{font-size:10px;color:var(--theme-subtitle);font-weight:700;}' +
-    '.cv-edu-school{font-size:11px;font-weight:700;color:var(--theme-title);}' +
-    '.cv-edu-major{font-size:10px;color:var(--theme-subtitle);}' +
+    '.cv-edu-year{font-size:10px;color:' + subtitleColor + ';font-weight:700;}' +
+    '.cv-edu-school{font-size:11px;font-weight:700;color:' + titleColor + ';}' +
+    '.cv-edu-major{font-size:10px;color:' + subtitleColor + ';}' +
     '.cv-lang{width:100%;font-size:11px;}' +
-    '.cv-lang td{padding:2px 0;color:var(--theme-text);}' +
-    '.cv-lang-level{color:var(--theme-subtitle);font-style:italic;font-weight:600;}' +
-    '.cv-right{width:65%;padding:32px 28px;flex:1;}' +
-    '.cv-header{margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--theme-line);}' +
-    '.cv-name{font-size:28px;font-weight:900;color:var(--theme-title);letter-spacing:0.5px;margin-bottom:2px;}' +
-    '.cv-job{font-size:13px;color:var(--theme-subtitle);font-weight:700;margin-bottom:8px;}' +
-    '.cv-contacts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:11px;color:var(--theme-text);}' +
-    '.cv-contact-label{font-weight:800;color:var(--theme-title);}' +
-    '.cv-exp-title{font-size:14px;font-weight:800;color:var(--theme-title);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid var(--theme-line);}' +
+    '.cv-lang td{padding:2px 0;color:' + textColor + ';}' +
+    '.cv-lang-level{color:' + subtitleColor + ';font-style:italic;font-weight:600;}' +
+    '.cv-header{margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid ' + lineColor + ';}' +
+    '.cv-name{font-size:28px;font-weight:900;color:' + titleColor + ';letter-spacing:0.5px;margin-bottom:2px;}' +
+    '.cv-job{font-size:13px;color:' + subtitleColor + ';font-weight:700;margin-bottom:8px;}' +
+    '.cv-contacts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:11px;color:' + textColor + ';}' +
+    '.cv-contact-label{font-weight:800;color:' + titleColor + ';}' +
+    '.cv-exp-title{font-size:' + expTitleSize + ';font-weight:800;color:' + titleColor + ';text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;padding-bottom:4px;border-bottom:2px solid ' + lineColor + ';}' +
     '.cv-exp-item{margin-bottom:12px;padding-bottom:12px;page-break-inside:avoid;}' +
-    '.cv-exp-item:not(:last-child){border-bottom:1px solid var(--theme-line);}' +
-    '.cv-exp-header{margin-bottom:2px;}' +
-    '.cv-exp-company{font-size:12px;font-weight:800;color:var(--theme-title);text-transform:capitalize;}' +
-    '.cv-exp-date{font-size:10px;color:var(--theme-subtitle);font-weight:700;margin-left:6px;}' +
-    '.cv-exp-role{font-size:11px;font-weight:800;color:var(--theme-subtitle);margin-bottom:3px;text-transform:capitalize;}' +
-    '.cv-duties{list-style:none;font-size:10.5px;color:var(--theme-text);line-height:1.5;padding:0;margin:0;}' +
+    '.cv-exp-item:not(:last-child){border-bottom:1px solid ' + lineColor + ';}' +
+    '.cv-exp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;}' +
+    '.cv-exp-company{font-size:12px;font-weight:800;color:' + titleColor + ';text-transform:capitalize;}' +
+    '.cv-exp-date{font-size:10px;color:' + subtitleColor + ';font-weight:700;margin-left:6px;white-space:nowrap;text-align:right;}' +
+    '.cv-exp-role{font-size:11px;font-weight:800;color:' + subtitleColor + ';margin-bottom:3px;text-transform:capitalize;}' +
+    '.cv-duties{list-style:none;font-size:10.5px;color:' + textColor + ';line-height:1.5;padding:0;margin:0;}' +
     '.cv-duties li{padding-left:12px;position:relative;margin-bottom:2px;}' +
-    '.cv-duties li::before{content:"•";position:absolute;left:0;color:var(--theme-title);font-weight:bold;}' +
-    '@media print{body{background:#fff !important;}.cv-container{box-shadow:none !important;margin:0 !important;width:100% !important;min-height:auto !important;}.cv-left{background:#f0f0f0 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}}';
+    '.cv-duties li::before{content:"•";position:absolute;left:0;color:' + titleColor + ';font-weight:bold;}' +
+    '@media print{body{background:#fff !important;}.cv-container{box-shadow:none !important;margin:0 !important;width:100% !important;min-height:auto !important;}.cv-left{background:' + leftBg + ' !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}.cv-right{background:' + rightBg + ' !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;}}';
 }
 
 function printResume() {
@@ -1817,7 +1831,15 @@ function gatherState() {
     const to = document.getElementById('inTo' + i);
     const r = document.getElementById('inR' + i);
     const du = document.getElementById('inDu' + i);
-    if (c) experiences.push({c: c.value, from: from?.value || '', to: to?.value || '', r: r.value, du: du.value});
+    if (c) {
+      const fromVal = from ? from.value : '';
+      const toVal = to ? to.value : '';
+      let d = '';
+      if (fromVal && toVal) d = fromVal + ' – ' + toVal;
+      else if (fromVal) d = fromVal;
+      else if (toVal) d = toVal;
+      experiences.push({c: c.value, from: fromVal, to: toVal, d: d, r: r.value, du: du.value});
+    }
   }
 
   const languages = [];
@@ -1836,17 +1858,52 @@ function gatherState() {
     if (year) education.push({year: year.value, school: school.value, major: major.value});
   });
 
+  // Collect ALL font sizes from preview elements
   const fontSizes = {};
-  ['cvName','cvJob','cvPhone','cvEmail','cvAddress','cvAbout','cvNat','cvSkills'].forEach(id => {
+
+  // Static elements
+  ['cvName','cvJob','cvPhone','cvEmail','cvAddress','cvAbout','cvNat','cvSkills','cvExpTitle'].forEach(id => {
     const el = document.getElementById(id);
     if (el && el.style.fontSize) fontSizes[id] = el.style.fontSize;
   });
+
+  // Section titles
+  ['secAbout','secSkills','secNat','secEdu','secLang'].forEach(id => {
+    const el = document.querySelector('#' + id + ' .cv-section-title');
+    if (el && el.style.fontSize) fontSizes[id + '_title'] = el.style.fontSize;
+  });
+
+  // Experience elements
   for (let i = 0; i < expCount; i++) {
     ['cvC','cvD','cvR','cvDu'].forEach(p => {
       const el = document.getElementById(p + i);
       if (el && el.style.fontSize) fontSizes[p + i] = el.style.fontSize;
     });
   }
+
+  // Education elements
+  document.querySelectorAll('#secEdu .cv-edu').forEach(edu => {
+    const idx = edu.id.replace('cvEdu', '');
+    ['cvEduYear','cvEduSchool','cvEduMajor'].forEach(p => {
+      const el = document.getElementById(p + idx);
+      if (el && el.style.fontSize) fontSizes[p + idx] = el.style.fontSize;
+    });
+  });
+
+  // Language elements
+  document.querySelectorAll('#cvLangTable .cv-lang-item').forEach(row => {
+    const idx = row.id.replace('cvLang', '');
+    ['cvL' + idx + 'n', 'cvL' + idx + 'l'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.style.fontSize) fontSizes[id] = el.style.fontSize;
+    });
+  });
+
+  // Contact items
+  ['cvContactPhone','cvContactEmail','cvContactAddress'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.style.fontSize) fontSizes[id] = el.style.fontSize;
+  });
 
   return {
     name: document.getElementById('inName').value,
@@ -1977,7 +2034,8 @@ function loadState() {
   expCount = 0;
   if (Array.isArray(s.experiences) && s.experiences.length > 0) {
     s.experiences.forEach(e => {
-      if (e.d && (!e.from || !e.to)) {
+      // Ensure from/to are set properly from d if needed
+      if (!e.from && !e.to && e.d) {
         const parts = e.d.split('–').map(s => s.trim());
         e.from = parts[0] || '';
         e.to = parts[1] || '';
@@ -2041,10 +2099,21 @@ function loadState() {
     });
     updateLangInputsFromPreview();
   }
+
+  // Restore ALL font sizes after everything is built
   if (s.fontSizes) {
+    // First pass: restore element font sizes
     Object.entries(s.fontSizes).forEach(([id, size]) => {
       const el = document.getElementById(id);
       if (el) el.style.fontSize = size;
+    });
+    // Second pass: restore section titles (they use _title suffix)
+    Object.entries(s.fontSizes).forEach(([key, size]) => {
+      if (key.endsWith('_title')) {
+        const sectionId = key.replace('_title', '');
+        const el = document.querySelector('#' + sectionId + ' .cv-section-title');
+        if (el) el.style.fontSize = size;
+      }
     });
   }
 }
@@ -2183,6 +2252,10 @@ function clearSession() {
   }
 
   document.querySelectorAll('[style*="font-size"]').forEach(el => {
+    el.style.fontSize = '';
+  });
+  // Also reset section title font sizes
+  document.querySelectorAll('.cv-section-title').forEach(el => {
     el.style.fontSize = '';
   });
 }
